@@ -1,0 +1,408 @@
+Content Delivery Network(CDN):
+    Faster Global Reach
+    Optimizes content delivery by routing traffic to the nearest server.
+    Handles surges during virtual events or launches.
+    Reduces latency,ensuring a seamless experience for users worldwide.
+
+Event-Driven Architecture:
+    Instead of calling
+
+-------------------------------------------------------------------------------
+8.    Containerization — what is the difference between VM & container, and where to deploy?
+
+        Architecture:
+                VM
+                Hardware
+                    |
+                Hypervisor
+                    |
+                VM1 (Guest OS +App)
+                VM2 (Guest OS +App)
+                VM3 (Guest OS +App)
+                VM4 (Guest OS +App)
+------------------------------------------------------------
+                Container
+
+                Hardware
+                    |
+                Host OS
+                    |
+                Container Runtime
+                    |
+                container1(app)
+                container2(app)
+                container3(app)
+                container4(app)
+
+
+        Virtual Machine virtualize the hardware and runs on full guest OS
+        Containers virtualize the OS layer and run lightweight isolated application processes sharing the host kernel
+
+        Use VM when:
+            strong isolation applications
+            legacy applications
+            different OS required
+            compliance requirements
+
+        Use containers when:
+            microservice architecture
+            CI/CD pipelines
+            Cloud - native apps
+            High traffic scalable Backend(FAST API,Node)
+
+        Virtual Machine run on Hypervisor (VM ware)
+        Each VM has:
+            full guest OS
+            Own kernel
+            system libraries
+            Application
+        Heavyweight Model
+        VM scaling very slow
+        containers scaling very fast -->> that's why kubernetes runs on thousands of containers automatically
+
+        cost:
+            VM ->> infrastructure cost
+            Container ->> Higher density ->> low cost
+
+
+        Container runs on container runtime
+        Containers share:
+            Host OS kernel
+        only Package:
+            Application code
+            dependencies
+            Runtime
+        Light weight model
+
+            Virtual Machines:
+                Full machine virtualization
+            containers:
+                process -level virtualization
+
+                container is light weight isolated runtime environment that packages:
+                    Application code
+                    system dependencies
+                    libraries
+                    runtime
+                    configurations
+                so the container runs same everywhere
+                example:
+                    Docker is container runtime and container build tool.
+                    Docker is provide containerization platform to package applications
+                    Kubernetes provides orchestration layer to deploy scale and network and heal containers in distributed production systems
+
+            Build container image
+
+                FROM <image_name>
+
+                WORKDIR /app
+
+                COPY . .
+
+                RUN pip install -r requirements.txt
+
+                CMD["uvicorn","main:app","--host","0.0.0.0","--port","8000"]
+
+                Docker build -t <application name>  ->> This creates the image (blueprint/template)
+
+                Docker run -d -p 8000:8000 fastapi-app
+
+                    App -runs in isolated container
+                    Has its own filesystem
+                    Own process namespace
+                    Own network stack
+
+            Containers in Kubernetes
+
+                Docker runs one or few containers
+
+                but in production we need
+
+                100 containers
+                Auto Scaling
+                Load Balancing
+                Self Healing
+                Rolling updates
+
+            Docker build and run containers
+            Kubernetes not build any containers it will Manage and orchestrate containers.
+
+            Kubernetes Core Components
+                Pod:
+                    Smallest deployable unit
+                    contains one or more containers
+                    Containers share:
+                                    Network and storage
+                Deployment:
+                    Define how many pods to run
+                        Example : replicas: 5
+                        Kubernetes runs the 5 containers automatically
+                Service:
+                    provides load balancing
+                    Gives stable IP/DNS
+                Auto Scaling:
+                    Kubernetes monitors :
+                        CPU
+                        Memory
+                        Traffic
+                    Then creates new containers automatically
+
+            Real production systems:
+                Implement FastAPI application
+                        |
+                build the Docker image
+                        |
+                push the Docker image to registry
+                        |
+                kubernetes pulls the image from registry
+                        |
+                create multiple containers
+                        |
+                load balancer distributed the traffic
+
+###############################################################################################
+
+9.    Let’s say two images in different namespaces — can they speak to each other?
+        Yes, they can — but it depends on the type of “namespace” you mean and the networking rules in place.
+
+        Yes, containers/pods in different namespaces can communicate. In Kubernetes, communication is allowed by default unless restricted by NetworkPolicies.
+
+        In Docker, containers must be on the same network to communicate. So it depends on the networking configuration and isolation rules.
+
+        1. If you mean Kubernetes Namespaces
+                ✅ By default: YES, they can communicate
+
+                In Kubernetes:
+
+                Pods in different namespaces can talk to each other
+
+                As long as:
+
+                They know the service/pod IP or DNS name
+
+                No NetworkPolicy is blocking traffic
+
+                Example
+
+                A pod in namespace frontend can call a service in backend like:
+
+                http://backend-service.backend.svc.cluster.local
+                ❌ When communication is blocked
+
+                If Network Policies are applied:
+
+                Traffic can be restricted between namespaces
+
+                Then communication must be explicitly allowed
+
+                2. If you mean Docker Namespaces / Containers
+
+                In Docker:
+
+                Case 1: Same Docker Network
+
+                ✔ Containers can communicate using container names
+
+                Case 2: Different Networks
+
+                ✖ Containers cannot communicate directly
+
+                You must:
+
+                Connect them to the same network OR
+
+                Expose ports
+
+                3. If you mean Linux Namespaces (low-level)
+
+                Linux namespaces isolate:
+
+                Network
+
+                Process IDs
+
+                File systems
+
+                ✔ Communication is possible only if networking is configured
+                (e.g., bridge, veth pairs)
+##############################################################################################
+10.   What is namespace and use of namespace?
+      Namespace is way to organize and isolate names/resources so they don't conflict with each other.
+         example:  files in a filesystem.
+         Namespace is mapping between names and objects.
+
+         example:
+             x = 10
+             def namespace():
+                y=20
+                return x+y
+
+      python looks up variables in this order using the 'LEGB' Rule.
+
+      Local
+      Enclosing
+      Global
+      Built-in
+
+      Types of python namespaces
+      1.Local namespace
+      2.Global namespace
+      3.Built-in namespace
+        print()
+        len()
+        range()
+      In Docker namespaces provide process isolation for containers.
+      They ensure a container cannot see or interfere with resources of other containers or the host.
+
+      In Kubernetes, namespaces are used to organize and isolate cluster resources.
+                Kubernetes Cluster
+                     ├── Namespace: dev
+                     │     ├── pod1
+                     │     ├── service1
+                     │
+                     ├── Namespace: staging
+                     │     ├── pod1
+                     │
+                     └── Namespace: production
+                           ├── pod1
+
+      Each namespace can contain resources like:
+            Pods
+            Services
+            Deployments
+            ConfigMaps
+            Secrets
+      kubectl create namespace dev
+
+      Think of namespaces as apartments in a building:
+
+            Each apartment can have a TV, table, and chair
+
+            Names are the same but belong to different apartments
+        So:
+
+            Python → apartment for variables
+
+            Docker → apartment for OS resources
+
+            Kubernetes → apartment for applications in a cluster
+
+      A namespace is a logical container that prevents name or resource conflicts by isolating them into separate scopes.
+-------------------------------------------------------------------------------------------------------------------------
+Docker file components:
+    FROM : Sets the base image for the Docker image
+    LABEL: Adds metadata to the image ->> LABEL maintainer="venkat@gmail.com"
+    RUN: Executes the commands during the build process ->> RUN apt update && apt install
+    CMD: Specifies the default command to run when container starts ->> CMD ["python","app.py"]
+    ENTRYPOINT: Always runs as the main command of the container ->> ENTRYPOINT["python"]
+    WORKDIR: Sets the working directory inside the container ->> WORKDIR/app
+    COPY: Copies the files from local machine to container ->> COPY. /app
+    ADD: Similar to COPY command but also supports URL download and tar extraction. ->> ADD app.tar.gz /app
+    ENV: Sets environment variables
+    EXPOSE: Documents the port the container listens on ->> EXPOSE 5000
+    USER: Sets the user for running commands ->> USER root
+    VOLUME: Creates a mount point or attaches storage ->> VOLUME["/data"]
+--------------------------------------------------------------------------------------------------------------------------
+What is Docker?
+    Docker is a tool that allows you to package you application and its entire environment into one unit.
+--------------------------------------------------------------------------------------------------------------------------
+What is Dockerfile?
+    A Dockerfile is a text file that contains step-by-step instructions to create a Docker image.
+    Base image
+    Working Dir
+    Copy Files
+    Expose port
+    Startup Command
+--------------------------------------------------------------------------------------------------------------------------
+What is Docker Compose?
+    Docker Compose allows us to define and run multi-container Docker applications using a YAML file.
+--------------------------------------------------------------------------------------------------------------------------
+Docker images:
+        Docker images are the fundamental building blocks of containers. They are immutable, read-only templates containing everything needed to run an application, including the operating system, application code, runtime, and dependencies.
+
+        Images are built using a Dockerfile, which defines the instructions for creating an image layer by layer.
+
+        Images can be stored in and retrieved from container registries such as Docker Hub.
+
+        Here are some example commands for working with images:
+
+                docker pull nginx: Fetch the latest Nginx image from Docker Hub.
+                docker images: List all available images on the local machine.
+                docker rmi nginx: Remove an image from the local machine.
+
+---------------------------------------------------------------------------------------------------------
+Docker containers
+A Docker container is a running instance of a Docker image. Containers provide an isolated runtime environment where applications can run without interfering with each other or the host system.Each container has its own filesystem, networking, and process space but shares the host kernel.
+
+Containers follow a simple lifecycle involving creation, starting, stopping, and deletion. Here’s a breakdown of common container management commands:
+
+Creating a container: docker create or docker run
+Starting a container: docker start
+Stopping a container: docker stop
+Restarting a container: docker restart
+Deleting a container: docker rm
+Let’s see a practical example. The following command runs an Nginx container in detached mode (running in the background), mapping port 80 inside the container to port 8080 on the host machine:
+
+docker run -d -p 8080:80 nginx
+
+        This command runs a Docker container using the nginx image. Here's a breakdown of the command:
+
+        docker run: This command is used to create and start a new container from a specified image.
+
+        -d: This flag runs the container in detached mode, meaning it runs in the background.
+
+        -p 8080:80: This option maps port 8080 on your host machine to port 80 on the container. Port 80 is the default port for HTTP traffic in the nginx server.
+
+        nginx: This specifies the Docker image to use, which is the official nginx web server image.
+
+        The code aims to start an nginx web server in a Docker container, accessible via http://localhost:8080 on your host machine.
+
+        After running this command, Docker will pull the Nginx image (if not already available), create a container, and start it.
+
+To check all running and stopped containers:
+
+    docker ps -a
+    The code snippet docker ps -a is a command used in Docker, a platform for developing, shipping, and running applications in containers.
+    docker: This is the command-line interface for interacting with Docker.
+
+    ps: This subcommand lists containers.
+
+    -a: This flag shows all containers, not just the running ones. It includes stopped containers as well.
+
+    The command aims to display a list of all Docker containers on your system, providing details like container IDs, names, statuses, and more.
+    This will display a list of all containers and details like their status and assigned ports.
+----------------------------------------------------------------------------------------------------------------------
+Docker Hub
+Docker Hub is a cloud-based registry service for finding, storing, and distributing container images. Users can push custom images to Docker Hub and share them publicly or privately.
+
+Here are some commands for interacting with Docker Hub:
+
+docker login: Authenticate with Docker Hub.
+docker push my-image: Upload a custom-built image to Docker Hub.
+docker search ubuntu: Search for official and community images.
+docker pull ubuntu: Download an Ubuntu image from Docker Hub.
+---------------------------------------------------------------------------------------
+What is Docker Compose?
+        Docker Compose is a tool that simplifies the management of multi-container applications.
+        Instead of running multiple docker run commands, you can define an entire application stack using a docker-compose.yml file and deploy it with a single command.
+
+
+
+Commands: docker-compose up -d
+            The previous command starts both the web and database containers in detached mode (-d).
+          docker-compose down
+            This stops and removes all containers while preserving volumes and network settings.
+
+
+
+
+
+
+
+
+
+
+
+
+
+

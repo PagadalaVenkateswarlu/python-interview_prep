@@ -1,0 +1,236 @@
+Types of constraints in SQL?
+
+    Domain constraint ->> simple columns (name) should be like this it should be first name, last name
+
+    Entity integrity constraint ->> Primary key should be null or reputational
+
+    Referencial integrity constraint ->> foreign key should have null values and refer key columns or otherwise the value should be null also fine
+
+Normalization in SQL?
+    1NF ->> x(non-atomic)
+    2NF ->> 1NF + x(partial dependency)
+    3NF ->> 2NF + x(transitive dependency)
+    BCNF(2.5NF) ->> 3NF + x(internal dependency)
+
+Normalization:
+    Normalization is a database design technique that reduces redundancy and ensures data integrity by splitting large tables into smaller,related once.
+    examples:
+        In real-world systems like e-commerce,Banking and CRM
+        Normalization prevents duplication,update anomalies(insert,update,delete) and inconsistent records
+
+🔑 What is Normalization?
+        Definition: Organizing data into structured tables to minimize redundancy and dependency.
+        Goal: Ensure consistency, avoid anomalies (update, insert, delete), and improve efficiency.
+        Normal Forms: Stepwise rules (1NF, 2NF, 3NF, BCNF) that progressively refine database design.
+
+⚖️ Why Normalization Matters
+        Reduces Redundancy: No repeated data across rows.
+        Ensures Consistency: Update once, reflect everywhere.
+        Improves Query Performance: Smaller, well-structured tables.
+        Prevents Anomalies: No conflicting or missing data during insert/update/delete.
+
+🚨 Trade-offs
+    Pros: Clean design, integrity, easier maintenance.
+    Cons: More tables → complex joins, sometimes slower queries for analytics.
+    Solution: Use normalization for OLTP (transactional systems), denormalization for OLAP (reporting/analytics).
+
+👉 In short: Normalization is like organizing your wardrobe—grouping shirts, pants, and shoes separately instead of piling everything together.
+             It makes retrieval easier, avoids duplication, and keeps things consistent.
+
+🛒 Starting Point: Unnormalized Table
+        Imagine we have a single table storing orders:
+
+        Code
+        OrderID | CustomerName | CustomerAddress | ProductList
+        ------------------------------------------------------
+        101     | Alice        | NY              | {Shoes, Bag}
+        102     | Bob          | LA              | {Watch}
+        Problems:
+
+        Multiple products stored in one field (ProductList).
+
+        Customer info repeated for every order.
+
+        Hard to query or update.
+
+1️⃣ First Normal Form (1NF)
+        Rule: Eliminate repeating groups; each cell must hold atomic values.
+
+        Fix: Split products into separate rows.
+
+        Code
+        OrderID | CustomerName | CustomerAddress | ProductName
+        ------------------------------------------------------
+        101     | Alice        | NY              | Shoes
+        101     | Alice        | NY              | Bag
+        102     | Bob          | LA              | Watch
+        ✅ Now each field is atomic.
+        ❌ Still redundant: Alice’s address repeats for each product.
+
+2️⃣ Second Normal Form (2NF)
+        Rule: Remove partial dependency (non-key attributes depending only on part of a composite key).
+
+        Fix: Separate customers from orders.
+
+        Customers Table
+
+        Code
+        CustomerID | Name   | Address
+        -----------------------------
+        C1         | Alice  | NY
+        C2         | Bob    | LA
+        Orders Table
+
+        Code
+        OrderID | CustomerID
+        --------------------
+        101     | C1
+        102     | C2
+        OrderDetails Table
+
+        Code
+        OrderID | ProductName
+        ---------------------
+        101     | Shoes
+        101     | Bag
+        102     | Watch
+        ✅ Customer info stored once.
+        ❌ Product details still repeated (e.g., price, category).
+
+3️⃣ Third Normal Form (3NF)
+        Rule: Remove transitive dependency (non-key attributes depending on other non-key attributes).
+
+        Fix: Create a separate Products Table.
+
+        Products Table
+
+        Code
+        ProductID | Name   | Price
+        --------------------------
+        P1        | Shoes  | 50
+        P2        | Bag    | 80
+        P3        | Watch  | 120
+        OrderDetails Table (updated)
+
+        Code
+        OrderID | ProductID
+        -------------------
+        101     | P1
+        101     | P2
+        102     | P3
+        ✅ Product info stored once, linked by ID.
+        ❌ Still possible anomalies if business rules aren’t enforced.
+
+4️⃣ Boyce-Codd Normal Form (BCNF)
+        Rule: Every determinant must be a candidate key (stronger than 3NF).
+
+        Fix: Handle cases like “Each product is supplied by one vendor.” If we store vendor info in Products, we risk anomalies if a product is linked to multiple vendors.
+
+        Vendors Table
+
+        Code
+        VendorID | VendorName
+        ---------------------
+        V1       | Nike
+        V2       | Fossil
+        ProductVendors Table
+
+        Code
+        ProductID | VendorID
+        --------------------
+        P1        | V1
+        P2        | V1
+        P3        | V2
+        ✅ Now vendor-product relationships are clean, no anomalies.
+
+        🎯 Final Structure (BCNF)
+        Customers: CustomerID, Name, Address
+
+        Orders: OrderID, CustomerID, Date
+
+        OrderDetails: OrderID, ProductID, Quantity
+
+        Products: ProductID, Name, Price
+
+        Vendors: VendorID, VendorName
+
+        ProductVendors: ProductID, VendorID
+
+        🚀 Real-World Impact
+        Amazon/Flipkart: Customer info stored once, products linked via IDs, vendors managed separately.
+
+        Benefits: No duplication, easy updates, consistent data, scalable design.
+
+
+ACID properties?
+
+ACID ->> Atomicity,Consistency,Isolation,Durability
+    To maintain integrity of data
+->> DBMS is the management of data it should remain integrity when any changes are done.
+->> When integrity of the data effected ,whole data, there will get disturbed and corrupted.
+
+ACID properties are the foundation of reliable database transactions.They ensure that operations like banking transfers,
+online shopping, and ticket bookings remain accurate,consistent, and safe even in the face of crashes or concurrent users.
+
+Atomicity (All or Nothing)
+Definition: A transaction must either complete fully or not at all. No partial updates.
+Example:(Bank Transfer)
+    If the system crashes after Step 1, the transaction rolls back, restoring Alice’s balance. Bob doesn’t get partial credit.
+Impact: Prevents incomplete or corrupted transactions.
+
+2. Consistency (Follow the Rules)
+Definition: Every transaction must leave the database in a valid state, following all rules and constraints.
+
+Example (E-Commerce Order):
+
+A customer buys a product. The system must ensure:
+
+Stock count decreases by 1.
+
+Payment is processed successfully.
+
+Order record is created.
+
+If any rule fails (e.g., payment declined), the transaction is aborted, and stock remains unchanged.
+
+Impact: Guarantees data integrity and business rules are enforced.
+
+3. Isolation (No Interference)
+Definition: Transactions run independently, even if executed concurrently.
+
+Example (Movie Ticket Booking):
+
+Two users try to book the last seat at the same time.
+
+Isolation ensures only one booking succeeds, preventing double allocation.
+
+Impact: Prevents race conditions and dirty reads.
+
+4. Durability (Permanent Results)
+Definition: Once a transaction is committed, it remains saved—even if the system crashes immediately afterward.
+
+Example (Online Shopping Payment):
+
+After successful payment, the order confirmation is stored in the database.
+
+Even if the server crashes, the order record persists when the system restarts.
+
+Impact: Ensures reliability and customer trust.
+
+📊 Quick Comparison Table
+Property	Meaning	Real-World Example	Prevents Issue
+Atomicity	All-or-nothing execution	Bank transfer	Partial updates
+Consistency	Valid state after transaction	E-commerce order rules	Invalid data
+Isolation	Independent transactions	Movie ticket booking	Race conditions, conflicts
+Durability	Permanent results after commit	Online shopping payment confirmation	Data loss after crash
+
+🚨 Why ACID Matters
+Banking: Prevents money duplication or loss.
+
+Healthcare: Ensures patient records remain accurate.
+
+E-commerce: Guarantees stock, payment, and orders align.
+
+Travel booking: Avoids double-booking flights or hotel rooms.
+
+👉 In short: ACID properties are the safety net of databases. They make sure that whether you’re transferring money, buying a product, or booking a ticket, the system behaves predictably and reliably—even under stress or failure.

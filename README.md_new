@@ -1,0 +1,2258 @@
+1. How do you connect a FastAPI application to a PostgreSQL database?
+
+You typically use:
+    ORM: SQLAlchemy
+    Driver: psycopg2 (sync) or asyncpg (async)
+    Connection string to PostgreSQL
+Example (real-world: user management system)
+    pip install fastapi sqlalchemy psycopg2-binary uvicorn
+Database setup
+    # database.py
+
+        from sqlalchemy import create_engine
+        from sqlalchemy.orm import sessionmaker, declarative_base
+
+        DATABASE_URL = "postgresql://user:password@localhost/mydb"
+
+        engine = create_engine(DATABASE_URL)
+        SessionLocal = sessionmaker(bind=engine)
+
+        Base = declarative_base()
+
+#Model
+# models.py
+    from sqlalchemy import Column, Integer, String
+    from database import Base
+
+    class User(Base):
+        __tablename__ = "users"
+
+        id = Column(Integer, primary_key=True, index=True)
+        name = Column(String)
+        email = Column(String, unique=True)
+
+#FastAPI connection
+# main.py
+        from fastapi import FastAPI, Depends
+        from sqlalchemy.orm import Session
+        from database import SessionLocal
+        import models
+
+        app = FastAPI()
+
+        def get_db():
+            db = SessionLocal()
+            try:
+                yield db
+            finally:
+                db.close()
+
+        @app.get("/users")
+        def get_users(db: Session = Depends(get_db)):
+            return db.query(models.User).all()
+Real-world use
+Think of:
+    E-commerce app storing users/orders
+    CRM storing customer data
+
+----------------------------------------------------------------------------
+2. Differences between Flask and Django
+    Feature	  Flask	Django
+    Type	Micro-framework	Full-stack framework
+    Flexibility	Very high	Moderate
+    Built-in features	Minimal	Batteries included
+    ORM	Optional	Built-in
+    Learning curve	Easy	Steeper
+    Use case	APIs, small apps	Large applications
+    Real-world analogy
+    Flask → Like LEGO blocks → build everything yourself
+    Django → Like a ready-made car → comes with engine, seats, etc.
+    Example
+    Flask: simple API for a startup MVP
+    Django: full-scale system like an admin dashboard or social platform
+---------------------------------------------------------------------------
+3. How do you design a REST API using FastAPI?
+    Principles
+    Use proper HTTP methods:
+        GET → fetch
+        POST → create
+        PUT → update
+        DELETE → remove
+        Use meaningful endpoints
+        Use Pydantic models for validation
+        Example (real-world: Todo app)
+
+        from fastapi import FastAPI
+        from pydantic import BaseModel
+
+        app = FastAPI()
+
+        class Todo(BaseModel):
+            title: str
+            completed: bool = False
+
+        todos = []
+
+        @app.post("/todos")
+        def create_todo(todo: Todo):
+            todos.append(todo)
+            return todo
+
+        @app.get("/todos")
+        def get_todos():
+            return todos
+
+        @app.put("/todos/{id}")
+        def update_todo(id: int, todo: Todo):
+            todos[id] = todo
+            return todo
+
+        @app.delete("/todos/{id}")
+        def delete_todo(id: int):
+            return {"message": "Deleted"}
+
+        Real-world use
+            Task management app
+            Backend for mobile apps
+            Microservices
+---------------------------------------------------------
+4. Explain how a GET API works in FastAPI
+
+A GET request:
+    Retrieves data
+    Does NOT modify anything
+    Can include query/path parameters
+
+Example
+    @app.get("/products/{product_id}")
+    def get_product(product_id: int):
+        return {"product_id": product_id}
+
+How it works (step-by-step)
+
+    Client sends request:
+
+        GET /products/10
+        FastAPI matches route
+        Extracts product_id = 10
+        Runs function
+        Returns JSON response
+        With query params
+        @app.get("/search")
+        def search(q: str):
+            return {"query": q}
+
+        Request:
+
+            GET /search?q=laptop
+            Real-world use
+                Fetch product details in e-commerce
+                Get user profile
+                Retrieve analytics data
+-----------------------------------------------------------------------------
+5. How do you structure a FastAPI application for production use?
+Recommended structure
+    app/
+    │
+    ├── main.py
+    ├── database.py
+    ├── models/
+    │   └── user.py
+    ├── schemas/
+    │   └── user.py
+    ├── routes/
+    │   └── user.py
+    ├── services/
+    │   └── user_service.py
+    ├── core/
+    │   └── config.py
+
+Example breakdown
+    routes/user.py
+    from fastapi import APIRouter
+
+    router = APIRouter()
+
+    @router.get("/users")
+    def get_users():
+        return [{"name": "John"}]
+    main.py
+
+    from fastapi import FastAPI
+    from routes import user
+
+    app = FastAPI()
+
+    app.include_router(user.router)
+    Best practices (real-world production)
+
+    ✅ Use environment variables
+    ✅ Use async DB (asyncpg) for performance
+    ✅ Add authentication (JWT/OAuth)
+    ✅ Logging & monitoring
+    ✅ Use Docker
+---------------------------------------------------------------
+6. What ORMs have you used in Python?
+
+ORM (Object-Relational Mapper) lets you interact with a database using Python objects instead of writing SQL manually.
+
+Common Python ORMs:
+    SQLAlchemy (most popular, flexible)
+    Django ORM (comes with Django framework)
+    Peewee (simple and small projects)
+    Tortoise ORM (for async apps)
+    Real-world example:
+        If you're building an e-commerce app, you’d use an ORM to:
+
+            Store users, products, orders
+            Fetch user orders without writing complex joins manually
+--------------------------------------------------------------------
+7. How does SQLAlchemy work?
+
+    SQLAlchemy works in two main ways:
+
+        ORM (high-level) → Use Python classes
+        Core (low-level) → Write SQL-like expressions
+    Concept:
+
+        You define Python classes → SQLAlchemy maps them to database tables.
+
+    Example:
+        from sqlalchemy import Column, Integer, String
+        from sqlalchemy.orm import declarative_base
+
+        Base = declarative_base()
+
+        class User(Base):
+            __tablename__ = "users"
+
+            id = Column(Integer, primary_key=True)
+            name = Column(String)
+            email = Column(String)
+
+    👉 This creates a users table in the database.
+
+    Real-world analogy:
+
+        Think of it like:
+
+        Class = Table
+        Object = Row
+
+        So instead of:
+
+            SELECT * FROM users;
+
+        You write:
+            session.query(User).all()
+
+------------------------------------------------
+8. Difference between ORM queries and raw SQL queries
+    Feature	       ORM Query	                 Raw SQL
+    Syntax	       Python code	                 SQL language
+    Ease	       Easier to write & maintain	 More control
+    Performance	   Slight overhead	             Faster in complex cases
+    Safety	       Prevents SQL injection	     Needs manual care
+Example:
+    ORM:
+        users = session.query(User).filter(User.name == "John").all()
+    Raw SQL:
+        SELECT * FROM users WHERE name = 'John';
+    Real-world scenario:
+        ORM → 90% of app (CRUD operations)
+        Raw SQL → complex analytics query (reports, aggregations)
+--------------------------------------------------------
+9. How do you fetch data using SQLAlchemy?
+Basic queries:
+    Get all users:
+        users = session.query(User).all()
+    Get one user:
+        user = session.query(User).first()
+    Get by ID:
+        user = session.query(User).get(1)
+    Select specific columns:
+        users = session.query(User.name, User.email).all()
+    Real-world example:
+        In a login system:
+            user = session.query(User).filter(User.email == email).first()
+
+👉 Used to check if user exists
+------------------------------------------------------------
+10. How do you filter data efficiently at the database level?
+
+👉 Key idea: Filter in SQL, not in Python
+
+❌ Bad (inefficient):
+    users = session.query(User).all()
+    filtered = [u for u in users if u.name == "John"]
+
+➡ Loads ALL data into memory 😱
+
+✅ Good (efficient):
+    users = session.query(User).filter(User.name == "John").all()
+
+👉 Database does the filtering → faster + less memory
+
+    Advanced filtering:
+        Multiple conditions:
+            from sqlalchemy import and_
+
+            users = session.query(User).filter(
+                and_(User.name == "John", User.age > 25)
+            ).all()
+
+            Using like:
+                users = session.query(User).filter(User.name.like("%Jo%")).all()
+            Using in:
+                users = session.query(User).filter(User.id.in_([1,2,3])).all()
+            Real-world example:
+
+                In an e-commerce app:
+
+                    products = session.query(Product).filter(
+                        Product.price < 1000,
+                        Product.category == "Electronics"
+                    ).all()
+
+            👉 Only relevant products are fetched (fast!)
+
+-------------------------------------------------------------
+11. What happens when a table contains millions of rows?
+
+When a table grows very large:
+    🔴 Problems:
+            Queries become slow
+            Full table scans happen (database checks every row)
+            High memory and CPU usage
+            Increased response time for users
+    Real-world example:
+
+        Imagine an e-commerce app:
+
+            orders table has 10 million rows
+    Query:
+        SELECT * FROM orders WHERE user_id = 101;
+
+👉 Without optimization, database scans all 10M rows → slow 😱
+---------------------------------------------------------------------
+12. How do you optimize database queries for large datasets?
+    ✅ Key techniques:
+        1. Use Indexes (most important)
+
+            Helps database find data quickly (like a book index)
+
+    2. Select only needed columns
+
+        ❌ Bad:
+            SELECT * FROM users;
+
+        ✅ Good:
+            SELECT name, email FROM users;
+
+    3. Filter early
+
+        SELECT * FROM orders WHERE status = 'completed';
+
+    👉 Reduces data load
+
+    4. Use pagination
+
+        Don’t load everything at once
+
+    5. Avoid N+1 queries (common ORM issue)
+
+    ❌ Bad:
+
+        for user in users:
+            print(user.orders)  # multiple DB calls
+
+    ✅ Use joins / eager loading
+
+    6. Use caching
+        Store frequent results (Redis, etc.)
+
+    7. Optimize joins
+         Use proper keys
+         Avoid unnecessary joins
+
+    Real-world example:
+
+        In a social media app:
+
+            Instead of loading all posts:
+                SELECT * FROM posts;
+
+            👉 Load only recent 10:
+
+                SELECT * FROM posts ORDER BY created_at DESC LIMIT 10;
+---------------------------------------------------------------------
+13. What is indexing and how does it improve performance?
+📌 Definition:
+
+        An index is a data structure that makes searching faster.
+
+    📖 Analogy:
+
+            Like an index in a book:
+
+                Without index → read entire book
+                With index → jump to exact page
+                Example:
+
+                    Without index:
+
+                        SELECT * FROM users WHERE email = 'test@mail.com';
+
+                    👉 Database scans all rows
+
+                    With index:
+
+                        CREATE INDEX idx_email ON users(email);
+
+                    👉 Now database finds it instantly ⚡
+
+                Real-world example:
+
+                    Login system:
+
+                    Users search by email
+                    Index on email → fast login
+                    ⚠️ Trade-off:
+                        Faster reads ✅
+                        Slightly slower writes ❌ (because index must update)
+---------------------------------------------------------------
+14. What is pagination? (Offset vs Cursor-based)
+📌 Pagination:
+
+        Fetching data in small chunks (pages) instead of all at once
+
+        🔹 Offset-based pagination
+                SELECT * FROM products LIMIT 10 OFFSET 20;
+
+            👉 Skip 20 rows, fetch next 10
+
+                Problems:
+                    Slow for large offsets 😬
+                    Data inconsistency (if new rows added)
+
+        🔹 Cursor-based pagination (better)
+                SELECT * FROM products WHERE id > 20 LIMIT 10;
+
+                👉 Uses last seen value (cursor)
+
+                Comparison:
+                    Feature	      Offset	        Cursor
+                    Performance	  Slow at scale	    Fast
+                    Consistency	  Can break	        Stable
+                    Use case	  Simple apps	    Large apps
+
+                Real-world example:
+                    Instagram feed:
+                        Uses cursor-based pagination
+                        Loads posts after last seen post ID
+----------------------------------------------------------
+15. What are common reasons for slow queries?
+🚨 Top reasons:
+    1. Missing indexes
+
+    👉 Most common issue
+
+    2. Using SELECT *
+
+    👉 Fetches unnecessary data
+
+    3. Large table scans
+
+    👉 No filtering
+
+    4. Poor joins
+        SELECT * FROM orders, users;
+
+        👉 No condition → huge dataset
+
+    5. N+1 query problem (ORM)
+
+        👉 Multiple database calls
+
+    6. Sorting large data without index
+        ORDER BY created_at
+
+    7. Too many records returned
+
+        👉 No LIMIT / pagination
+
+    8. Inefficient filters
+            WHERE LOWER(name) = 'john'
+
+            👉 Prevents index usage
+
+    Real-world example:
+
+        In a banking app:
+
+            SELECT * FROM transactions WHERE amount > 100;
+
+    If no index → slow
+    If indexed → fast ⚡
+
+----------------------------------------------------------
+16. If an API is slow, how would you debug it?
+
+🔍 Step-by-step approach:
+        Measure response time
+        Use tools like Postman or curl
+        Check how long the API takes
+        Check logs
+        Look at application logs to see where time is spent
+        Break down the API flow
+            Request → Business logic → Database → External APIs
+
+        Add timing logs
+
+        start = time.time()
+        # DB call
+        print("DB time:", time.time() - start)
+
+        Check dependencies
+            Is it calling another slow API?
+        Is DB slow?
+            Load test
+        Use Apache JMeter or Locust
+        🧠 Real-world example:
+
+                An e-commerce API /orders is slow.
+
+                    Total time: 3 seconds
+                    Breakdown:
+                        DB query: 2.5 sec ❌
+                        Processing: 0.3 sec
+                        Response: 0.2 sec
+
+        👉 Clearly, the database is the bottleneck.
+
+-----------------------------------------------------------
+7. How do you identify whether the issue is in the application layer or database layer?
+🧪 Method:
+
+        Add timing around each layer:
+
+            start = time.time()
+            data = db.get_orders()
+            print("DB:", time.time() - start)
+
+            start = time.time()
+            processed = process(data)
+            print("App:", time.time() - start)
+
+            🔍 Indicators:
+                Symptom	                                  Likely Issue
+                DB query slow	                          Database layer
+                Fast DB but slow processing	              Application layer
+                High CPU usage	                          Application
+                High DB load	                          Database
+            🧠 Real-world example:
+                    DB query: 50 ms ✅
+                    Total API: 2 sec ❌
+
+            👉 Problem is in application logic (e.g., loops, heavy computation).
+-----------------------------------------------------------------------
+18. What tools or techniques do you use for performance profiling in Python?
+    🛠️ Common tools:
+            1.  cProfile
+                Built-in profiler
+                python -m cProfile app.py
+
+            2. line_profiler
+                Shows line-by-line execution time
+            3. Py-Spy
+                Production-safe profiler
+            4. FlameGraph
+                Visualizes bottlenecks
+    🔍 Techniques:
+            Measure function execution time
+            Identify hot paths (frequently executed code)
+            Optimize loops, recursion, I/O
+
+    🧠 Real-world example:
+
+            You find this function is slow:
+
+                def calculate():
+                    for i in range(10000000):
+                        pass
+
+            👉 Profiling shows this loop takes 80% of time → optimize or remove.
+-------------------------------------------------------------------------------
+19. How do you analyze a slow SQL query?
+    🔍 Steps:
+        Run the query directly in DB
+        Use EXPLAIN / EXPLAIN ANALYZE
+        Check:
+            Full table scan ❌
+            Missing indexes ❌
+            Joins ❌
+            Sorting ❌
+    🧠 Example query:
+            SELECT * FROM orders WHERE user_id = 123;
+    Problem:
+        No index on user_id → scans entire table
+    Solution:
+        CREATE INDEX idx_user_id ON orders(user_id);
+
+    👉 Query goes from 2 sec → 20 ms
+
+ ----------------------------------------------------------------
+20. What is EXPLAIN ANALYZE in PostgreSQL?
+📌 Definition:
+        PostgreSQL feature that:
+
+            Shows query execution plan
+            Actually runs the query
+            Gives real execution time
+            Example:
+                EXPLAIN ANALYZE
+                SELECT * FROM orders WHERE user_id = 123;
+                Output shows:
+                    Execution time
+                    Rows scanned
+                    Index usage
+                    Cost estimate vs actual
+            🧠 Real-world interpretation:
+
+             Output:
+
+                Seq Scan on orders  (cost=0.00..1000.00 rows=10000)
+
+            👉 Means:
+
+                Full table scan ❌
+                Not using index
+
+            After adding index:
+
+            Index Scan using idx_user_id on orders
+
+            👉 Now optimized ✅
+-----------------------------------------------------------------------------
+25. Handling Large Datasets Efficiently in Backend Systems
+
+When datasets are too big to fit into memory or process quickly, you need strategies to optimize performance and scalability.
+
+🔹 Key Techniques
+        1. Pagination (Chunking data)
+
+        Instead of loading everything:
+
+            Fetch small chunks (e.g., 1000 rows at a time)
+
+        Example:
+        A banking app showing transactions:
+
+            Instead of loading 1 million records → show 50 per page
+            SELECT * FROM transactions LIMIT 50 OFFSET 0;
+        2. Indexing (Database optimization)
+
+            Indexes make queries faster.
+
+            Example:
+                Searching users by email in a large system like Amazon:
+
+            Without index → slow scan
+            With index → instant lookup
+        3. Caching
+
+            Store frequently accessed data in fast storage (like Redis).
+
+            Example:
+                Product details in an e-commerce app:
+
+            Instead of hitting DB every time → fetch from cache
+
+        4. Distributed Processing
+
+            Split data across multiple machines.
+
+            Example:
+                Companies like Netflix process huge logs using distributed systems (like Spark).
+
+        5. Lazy Loading
+
+                Load data only when needed.
+
+                Example:
+                Social media feed:
+
+                    Load first 10 posts → load more on scroll
+---------------------------------------------------------------------------
+26. Reducing Memory Usage in Python
+
+        Python can consume a lot of memory, so optimizing is important.
+
+        🔹 Techniques
+        1. Generators instead of Lists
+
+        Generators don’t store all values in memory.
+
+        # Bad (loads everything)
+        nums = [i for i in range(1000000)]
+
+        # Good (lazy)
+        nums = (i for i in range(1000000))
+
+        Real-world example:
+            Processing large log files:
+                Read line-by-line instead of loading entire file
+        2. Use yield
+
+            Efficient streaming of data.
+
+        def read_large_file(file):
+            for line in file:
+                yield line
+
+        3. Use Efficient Data Structures
+            set for lookups
+            array or numpy for numeric data
+
+            Example:
+                Fraud detection system:
+
+                    Millions of IDs → use set for fast checking
+
+        4. Delete Unused Variables
+
+            Free memory manually
+            del large_data
+
+        5. Use __slots__ in Classes
+
+        Reduces memory overhead
+
+        class User:
+            __slots__ = ['name', 'age']
+
+        6. Avoid Duplicate Data
+
+            Reuse objects instead of copying
+----------------------------------------------------------------------
+27. Processing Data in Batches or Streams
+
+This is critical when dealing with real-time or huge data.
+
+🔹 Batch Processing
+
+    Process data in chunks at intervals.
+
+    Example:
+
+        Payroll system:
+
+            Processes salaries of employees at the end of the month in batches
+
+            for i in range(0, len(data), 1000):
+                batch = data[i:i+1000]
+                process(batch)
+
+            Real-world:
+                Banks process transactions in batches overnight.
+
+🔹 Stream Processing
+
+    Process data continuously as it arrives.
+
+    Example:
+
+        Food delivery apps like Zomato:
+
+            Track orders in real-time
+            Update delivery status instantly
+        for event in stream:
+                process(event)
+
+    🔹 Batch vs Stream (Simple Comparison)
+
+    Feature	               Batch	          Stream
+    Timing	               Scheduled	      Real-time
+    Data Size	           Large chunks	      Continuous
+    Example	               Salary processing  Live chat messages
+
+    🔹 Hybrid Approach (Most common in real systems)
+
+    Example:
+        Uber
+        Real-time: ride tracking (stream)
+        Batch: daily reports & analytics
+---------------------------------------------------------
+31. What is Git and how do you use it in projects?
+
+        Git is a version control system that tracks changes in your code over time. It lets multiple developers work on the same project without overwriting each other’s work.
+
+        🔧 How it’s used in real projects
+
+                Imagine you're building an e-commerce website with a team:
+
+                You work on the login feature
+                Another teammate works on payment integration
+                Someone else works on UI design
+
+        With Git:
+
+        Each person works in their own branch
+        Changes are saved as commits
+        Work is combined using merge
+        🧪 Basic workflow
+
+            Clone project
+
+                git clone <repo-url>
+
+            Create a branch
+
+                git checkout -b login-feature
+
+            Make changes & commit
+
+                git add .
+                git commit -m "Added login validation"
+
+            Push changes
+
+                git push origin login-feature
+
+            Merge into main branch (via Pull Request)
+
+        👉 Real-world example:
+        A company like Amazon uses Git so thousands of developers can work on different features without breaking the main system.
+--------------------------------------------------------------------------------------
+32. What are merge conflicts and why do they occur?
+
+        A merge conflict happens when Git can’t automatically decide which change to keep.
+
+        ⚠️ Why conflicts happen
+
+            Usually when:
+
+                Two people edit the same file
+                And modify the same lines
+        🧪 Example
+
+            You and your teammate both edit app.js:
+
+        Your code:
+
+            let theme = "dark";
+
+        Teammate’s code:
+
+            let theme = "light";
+
+        Git doesn’t know which one is correct → conflict
+-------------------------------------------------------------------------
+33. How do you resolve merge conflicts?
+
+        When a conflict happens, Git marks it like this:
+
+            <<<<<<< HEAD
+            let theme = "dark";
+            =======
+            let theme = "light";
+            >>>>>>> branch-name
+            🛠️ Steps to resolve
+                Open the file
+                Decide what to keep
+                Your version
+                Their version
+                Or combine both
+                Edit the file manually
+
+            Example resolved:
+
+                let theme = "dark"; // decided to keep dark mode
+            Mark as resolved
+
+            git add app.js
+
+
+            git commit -m "Resolved merge conflict"
+---------------------------------------------------------------------------
+
+34. How can you minimize merge conflicts in a team?
+
+    You can’t eliminate conflicts completely, but you can reduce them a lot.
+
+    ✅ Best practices
+    1. Work on small features
+    Don’t change huge parts of code at once
+    Smaller changes = fewer conflicts
+
+    👉 Example: Instead of editing the whole homepage, just fix the navbar.
+
+    2. Pull frequently
+        git pull origin main
+        Keeps your code updated with team changes
+
+    👉 Real-world: Like syncing your Google Doc before editing
+
+    3. Use separate branches
+            Each feature gets its own branch
+
+    👉 Example:
+
+            login-feature
+            payment-feature
+
+    4. Communicate with team
+            Avoid editing the same file at the same time
+
+    👉 Example:
+
+        You take auth.js
+        Teammate takes payment.js
+
+    5. Follow clear code structure
+            Modular code reduces overlap
+
+    👉 Example:
+        Instead of one big file:
+
+            app.js
+
+            Split into:
+
+            auth.js
+            payment.js
+            ui.js
+
+    6. Code reviews before merging
+            Catch issues early using Pull Requests
+-------------------------------------------------------------------
+35. dict[key] vs dict.get(key)
+    🔹 Key Difference:
+            dict[key] → Raises an error if the key doesn’t exist
+            dict.get(key) → Returns None (or a default value) if the key doesn’t exist
+            ✅ Example:
+                data = {"name": "Alice", "age": 25}
+
+                print(data["name"])       # Alice
+                print(data.get("name"))   # Alice
+
+                print(data.get("city"))   # None
+                print(data.get("city", "Unknown"))  # Unknown
+
+                print(data["city"])       # ❌ KeyError
+                🌍 Real-world analogy:
+
+                    Think of a locker:
+                        dict[key] → You force open a specific locker. If it doesn’t exist → alarm (error 🚨)
+                        dict.get(key) → You check if locker exists first. If not → you calmly get “nothing” or a default
+
+------------------------------------------------
+36. Exception Handling in Python
+🔹 What it is:
+
+        A way to handle errors gracefully without crashing your program.
+
+        ✅ Basic Structure:
+                try:
+                    x = int("abc")  # risky code
+                except ValueError:
+                    print("Conversion failed!")
+                finally:
+                    print("This always runs")
+        🧠 Flow:
+                try → Run code
+                except → Handle specific error
+                finally → Always runs (cleanup)
+        🌍 Real-world analogy:
+
+            Imagine driving:
+
+                try → You drive normally
+                except → If accident happens, airbags deploy
+                finally → Car engine shuts down safely
+
+
+---------------------------------------------------------
+37. Decorators in Python
+🔹 What they are:
+
+    Decorators are functions that modify other functions without changing their code.
+
+✅ Example:
+        def logger(func):
+            def wrapper():
+                print("Function is running")
+                func()
+            return wrapper
+
+        @logger
+        def greet():
+            print("Hello!")
+
+        greet()
+        Output:
+            Function is running
+            Hello!
+        🌍 Real-world analogy:
+
+                Think of a gift:
+
+                    The function = gift 🎁
+                    Decorator = wrapping paper
+                    The gift stays the same, but presentation/behavior changes
+
+        💡 Common Uses:
+            Logging
+            Authentication
+            Timing functions
+
+-------------------------------------------------------------------
+38. List vs Generator
+🔹 Key Difference:
+            List → Stores all values in memory
+            Generator → Produces values one at a time (lazy)
+            ✅ Example:
+                List:
+                    nums = [i*i for i in range(5)]
+                    print(nums)  # [0, 1, 4, 9, 16]
+                Generator:
+                    nums = (i*i for i in range(5))
+                    print(nums)  # <generator object>
+                    for n in nums:
+                        print(n)
+
+            🌍 Real-world analogy:
+                    List → Buying all groceries at once 🛒
+                    Generator → Ordering food one dish at a time 🍽️
+            ⚡ Key Comparison:
+
+            Feature	          List	              Generator
+            Memory	          High	              Low
+            Speed	          Faster access	      Slightly slower
+            Use case	      Small datasets	  Large/stream data
+
+
+-----------------------------------------------------------------------
+28. What are database jobs or schedulers?
+✅ Simple definition
+
+    A database job / scheduler is a system that automatically runs tasks at a specific time or interval without manual intervention.
+
+    📌 What kind of tasks?
+        Backup database every night
+        Clean old records
+        Send reports daily
+        Update data periodically
+
+    🧠 Real-world example
+
+    Imagine a banking system:
+
+        Every day at midnight → calculate interest for savings accounts
+        Every week → generate account statements
+
+        No human does this manually—it’s handled by a scheduler.
+
+    🧰 Examples in real systems:
+        Cron jobs (Linux) → run scripts at fixed times
+        MySQL Event Scheduler → runs SQL tasks automatically
+        Oracle DBMS Scheduler
+
+    💡 Example (Cron style)
+            0 0 * * * python backup.py
+
+            ➡️ Runs every day at midnight
+--------------------------------------------------------------------------------
+29. How would you implement background jobs in Python?
+    ✅ What are background jobs?
+
+        Tasks that run separately from the main application, usually:
+        Long-running
+        Time-consuming
+        Not needed immediately
+
+    🔹 Approach 1: Simple threading
+
+        import threading
+        import time
+
+        def send_email():
+            time.sleep(5)
+            print("Email sent!")
+
+        thread = threading.Thread(target=send_email)
+        thread.start()
+
+        print("Main app continues...")
+    🧠 Real-world example:
+
+        User signs up → app immediately responds
+        Meanwhile → email is sent in background
+
+🔹 Approach 2: Using queues (better approach)
+        from queue import Queue
+        import threading
+
+        def worker(q):
+            while True:
+                task = q.get()
+                print(f"Processing {task}")
+                q.task_done()
+
+        q = Queue()
+
+        threading.Thread(target=worker, args=(q,), daemon=True).start()
+
+        q.put("Send Email")
+        q.put("Generate Report")
+
+🧠 Real-world example:
+
+        E-commerce app:
+
+            Order placed → added to queue
+            Background worker:
+                sends confirmation email
+                updates inventory
+🔹 Approach 3: Using task queues (production-level)
+
+        Use tools like Celery
+
+        from celery import Celery
+
+        app = Celery('tasks', broker='redis://localhost')
+
+        @app.task
+        def send_email():
+            print("Email sent!")
+
+        send_email.delay()
+        🧠 Real-world example:
+                Instagram uploading videos
+                Payment processing
+                Notifications system
+
+        These must:
+            scale
+            retry on failure
+            run asynchronously
+
+---------------------------------------------------------------
+30. Tools/libraries for scheduling tasks in Python
+
+        Here are the most commonly used ones:
+
+        🔹 1. Celery
+        ✅ Best for: Large-scale apps
+
+        Features:
+
+            Distributed workers
+            Retry failed tasks
+            Message brokers (Redis, RabbitMQ)
+            Can schedule tasks (Celery Beat)
+            🧠 Example:
+                Food delivery app:
+                    assign delivery
+                    send SMS
+                    update tracking
+        🔹 2. APIScheduler
+                ✅ Best for: Simple scheduling inside Python apps
+                from apscheduler.schedulers.blocking import BlockingScheduler
+
+                def job():
+                    print("Running task")
+
+                sched = BlockingScheduler()
+                sched.add_job(job, 'interval', seconds=10)
+                sched.start()
+
+                🧠 Example:
+                    Run analytics every 10 minutes
+                    Sync data periodically
+        🔹 3. schedule
+            ✅ Best for: Very simple jobs
+                    import schedule
+                    import time
+
+                    def job():
+                        print("Running job")
+
+                    schedule.every(5).seconds.do(job)
+
+                    while True:
+                        schedule.run_pending()
+                        time.sleep(1)
+                    🧠 Example:
+                    Personal scripts
+                    Small automation tools
+
+        🔹 4. Cron (system-level scheduler)
+                        ✅ Best for: OS-level scheduling
+                        0 9 * * * python report.py
+                        🧠 Example:
+                        Generate daily reports at 9 AM
+                        Backup servers
+        🔹 5. RQ (Redis Queue)
+                ✅ Best for: Simpler alternative to Celery
+                    Uses Redis
+                    Easy setup
+                    Less complex than Celery
+        🧠 When to use what?
+        Use Case	Tool
+        Small script	schedule
+        Medium app	APScheduler
+        Large distributed system	Celery
+        OS-level automation	Cron
+        Simple queue system	RQ
+----------------------------------------------------------------------
+21. What are stored procedures?
+
+        A stored procedure is a pre-written SQL program stored inside the database that you can execute whenever needed.
+
+        Think of it like a reusable function inside the database.
+
+                ✅ Example
+
+                    Imagine an e-commerce app:
+
+                        Instead of writing this query every time:
+
+                            SELECT * FROM orders WHERE user_id = 101;
+
+                        You create a stored procedure:
+
+                            CREATE PROCEDURE GetUserOrders(IN uid INT)
+                            BEGIN
+                                SELECT * FROM orders WHERE user_id = uid;
+                            END;
+
+                            Now you just call:
+
+                                CALL GetUserOrders(101);
+                🧠 Real-world analogy
+
+                        Like a coffee machine preset button ☕
+                        → You press one button instead of repeating all steps each time.
+-------------------------------------------------------------------------------------
+22. When would you use stored procedures instead of application logic?
+
+        Use stored procedures when logic is closer to the data and needs to be fast, secure, or reused.
+
+            ✅ Use cases
+                1. Heavy data processing
+
+                Example: Monthly salary calculation
+
+                Thousands of rows processed inside DB → faster than sending data to app
+
+            2. Security control
+                Hide table structure
+                Users only execute procedures, not raw queries
+
+            Example:
+
+            Banking system only allows:
+            CALL TransferMoney(...)
+
+            instead of direct table access
+
+            3. Reusable business logic
+                Same logic used by multiple apps (web, mobile, APIs)
+            4. Reduce network calls
+                  Instead of multiple queries from app → one procedure call
+------------------------------------------------------------------------
+23. Pros and Cons of stored procedures
+        ✅ Pros
+
+        1. Performance
+
+        Runs inside DB → faster execution
+        Less data transfer
+
+        Example:
+        Bulk order processing is quicker in DB than Python loops
+
+        2. Reusability
+
+        Write once, use everywhere
+
+        3. Security
+
+        Restrict direct table access
+        Only expose procedures
+
+        4. Reduced network traffic
+
+        One call instead of many queries
+        ❌ Cons
+
+        1. Harder to debug
+
+        Debugging SQL procedures is tougher than app code
+
+        2. Database dependency
+
+        Tightly coupled to a specific DB (MySQL, PostgreSQL, etc.)
+
+        3. Version control issues
+
+        Harder to track changes compared to application code
+
+        4. Limited flexibility
+
+        Complex logic is easier in Python/Java than SQL
+        🧠 Real-world tradeoff example
+        Scenario	Better choice
+        Simple CRUD	Application logic
+        Heavy data aggregation	Stored procedure
+        Complex business rules	Application logic
+
+------------------------------------------------------
+
+24. How do you call a stored procedure from a Python application?
+
+    You use database libraries like:
+
+        mysql-connector-python
+        psycopg2 (PostgreSQL)
+        pyodbc
+
+        ✅ Example (MySQL with Python)
+        import mysql.connector
+
+        conn = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            password="password",
+            database="shop"
+        )
+
+        cursor = conn.cursor()
+
+        # Call stored procedure
+        cursor.callproc('GetUserOrders', [101])
+
+        # Fetch results
+        for result in cursor.stored_results():
+            print(result.fetchall())
+
+        conn.close()
+
+        ✅ Example (PostgreSQL with psycopg2)
+
+                import psycopg2
+
+                conn = psycopg2.connect(
+                    dbname="shop",
+                    user="postgres",
+                    password="password",
+                    host="localhost"
+                )
+
+                cursor = conn.cursor()
+
+                cursor.callproc('get_user_orders', [101])
+                rows = cursor.fetchall()
+
+                print(rows)
+
+                conn.close()
+        🧠 Real-world example
+
+                In an online shopping app:
+
+                    Python backend calls:
+                        cursor.callproc('PlaceOrder', [user_id, product_id, qty])
+                        Stored procedure:
+                            Checks stock
+                            Deducts inventory
+                            Inserts order
+                            Handles transaction
+
+        👉 This ensures data consistency + performance
+--------------------------------------------END---------------------------------------------
+OOPS:
+1. What is Object-Oriented Programming?
+    1.Object-Oriented Programming (OOP) is a programming paradigm that organizes software design around data, or objects, rather than functions and logic.
+    2.An object can be defined as a data field that has unique attributes and behavior.
+    3.OOP focuses on the objects that developers want to manipulate rather than the logic required to manipulate them.
+
+    Object-Oriented Programming (OOP) is a way of writing programs by organizing code into objects, just like real-world things.
+
+👉 Instead of just writing instructions step by step, OOP focuses on:
+
+        Things (objects)
+        Their properties (data)
+        Their actions (functions)
+        🔹 Example:
+                Think about a Car 🚗
+                Properties: color, brand, speed
+                Actions: start(), stop(), accelerate()
+
+            In OOP:
+                Car = Object
+                Code that defines car = Class
+----------------------------------------------------------------------------------------------------------------------
+Why Do We Use OOP?
+    • Modularity: Code is organized into self-contained objects that can be developed and tested
+    independently.
+    • Reusability: Classes and objects can be reused across multiple parts of an application or
+    across different projects.
+    • Scalability: OOP makes it easier to add features without breaking existing functionality.
+    • Maintainability: Clean separation of concerns makes code easier to read, debug, and
+    maintain.
+    • Abstraction: Hides complex implementation details, exposing only what is necessary.
+    • Real-world modeling: Maps closely to real-world entities, making design intuitive.
+---------------------------------------------------------------------------------------------------------------------
+Advantages and Disadvantages of OOP
+    ✅ Advantages:
+        Code Reusability
+            Use inheritance to reuse code
+        Better Organization
+            Code is structured into objects
+        Security
+            Encapsulation protects data
+        Easy Maintenance
+            Changes in one class don’t affect others
+        Real-world Modeling
+            Easy to represent real-world systems
+
+    ❌ Disadvantages:
+
+        More Complex
+            Harder for beginners to understand
+
+        Slower Execution
+            Slightly slower than procedural programming
+
+        More Memory Usage
+            Objects consume more memory
+
+        Over-Engineering
+            Not ideal for small/simple programs
+-----------------------------------------------------------------
+Memory Allocation When an Object is Created
+
+    When an object is created, memory is allocated in two main parts:
+
+    1. Stack Memory
+        Stores:
+            Reference (address of object)
+            Fast access
+    2. Heap Memory
+        Stores:
+            Actual object data (variables, values)
+        Example:
+            myCar = new Car();
+            myCar → stored in stack (reference)
+            Actual Car object → stored in heap
+            Real-world analogy:
+                Stack = remote control
+                Heap = TV
+
+    👉 Remote (reference) controls the TV (actual object)
+---------------------------------------------------------------------
+1. What is Encapsulation? Why is it important?
+    Encapsulation is the mechanism of bundling data (fields) and the methods that operate on that data
+    into a single unit (class), and restricting direct access to some of the object's components. This is
+    achieved through access modifiers (private, protected, public).
+    Encapsulation means wrapping data (variables) and methods (functions) together into a single unit (class), and restricting direct access to some parts of the object.
+
+    👉 In simple terms: “Hide the internal details and control how data is accessed.”
+
+    ✅ Real-world example:
+
+        Think of a bank account:
+
+            You can’t directly access your balance variable
+            You use methods like:
+                deposit()
+                withdraw()
+
+        You interact through controlled methods, not directly with the data.
+
+        ✅ Why it’s important:
+            Protects data from misuse
+            Improves maintainability
+            Makes code easier to control and debug
+
+---------------------------------------------------------------------------
+2. What is Data Hiding? How is it different from Encapsulation?
+    Data Hiding:
+        Data hiding means restricting direct access to data by making variables private.
+
+    👉 Example:
+            private int balance;
+
+    Encapsulation	                                                    Data Hiding
+    Wraps data + methods together	                                    Only restricts access to data
+    Achieved using classes	                                            Achieved using access modifiers (private)
+    Broader concept	                                                    Part of encapsulation
+
+    👉 Key idea:
+    Data hiding is a part of encapsulation.
+---------------------------------------------------------------------------------
+3. Encapsulation vs Abstraction
+    Encapsulation
+        Focus: How data is protected
+        Hides internal state
+    Abstraction
+        Focus: What to show, what to hide
+        Shows only essential features
+    ✅ Real-world example:
+                    Car
+                    Encapsulation: Engine internals are hidden
+                    Abstraction: You just use:
+                        steering
+                        accelerator
+                        brake
+
+    👉 You don’t need to know how the engine works to drive.
+-----------------------------------------------------------------------------------
+7. How does encapsulation improve security?
+
+        Encapsulation improves security by:
+
+            ✅ 1. Restricting access
+                    Use private variables
+            ✅ 2. Controlled modification
+                    Only allow changes through methods
+            ✅ 3. Validation
+                Prevent incorrect data
+                Real-world example:
+                    ATM machine
+                    You cannot directly change your balance
+                    You must:
+                        Enter PIN
+                        Choose operation
+
+        👉 That’s encapsulation + security
+------------------------------------------------------------------------------------------
+✅ What are Getter and Setter Methods?
+        Getter
+            A getter is a method used to read (get) the value of a private variable.
+
+            👉 It returns the value.
+
+        Setter
+            A setter is a method used to update (set) the value of a private variable.
+
+            👉 It modifies the value, often with validation.
+
+        🧠 Why do we need them?
+
+            We use getters and setters to:
+
+                1. 🔒 Protect data (Encapsulation)
+
+                Prevent direct access to variables.
+
+                2. ✅ Add validation
+
+                    Ensure only valid data is assigned.
+
+                3. 🎛️ Control access
+
+                    Decide how data is read or modified.
+
+        🧾 Python Example (Basic)
+            class BankAccount:
+                def __init__(self, balance):
+                    self.__balance = balance   # private variable
+
+                # Getter
+                def get_balance(self):
+                    return self.__balance
+
+                # Setter
+                def set_balance(self, amount):
+                    if amount >= 0:
+                        self.__balance = amount
+                    else:
+                        print("Invalid amount!")
+            ✅ Usage:
+            account = BankAccount(1000)
+
+            print(account.get_balance())   # Getter → 1000
+
+            account.set_balance(2000)      # Setter → valid
+            print(account.get_balance())   # 2000
+
+            account.set_balance(-500)      # Setter → invalid
+
+        🚫 Without Getter/Setter (Problem)
+            class BankAccount:
+                def __init__(self, balance):
+                    self.balance = balance   # public
+            account = BankAccount(1000)
+            account.balance = -500   # ❌ Invalid but allowed
+
+        👉 No control → unsafe
+
+        🌍 Real-World Example
+            🏦 Bank Account
+            You cannot directly change your balance
+            You must:
+                deposit money
+                withdraw money
+
+        👉 These actions act like setters with rules
+
+        🎓 Student Marks System
+        class Student:
+            def __init__(self):
+                self.__marks = 0
+
+            def get_marks(self):
+                return self.__marks
+
+            def set_marks(self, marks):
+                if 0 <= marks <= 100:
+                    self.__marks = marks
+                else:
+                    print("Marks must be between 0 and 100")
+
+        👉 Prevents:
+            marks = 150 ❌
+            marks = -10 ❌
+
+        ⭐ Pythonic Way (Using @property)
+
+        Python provides a cleaner way:
+
+            class BankAccount:
+                def __init__(self, balance):
+                    self.__balance = balance
+
+                @property
+                def balance(self):   # Getter
+                    return self.__balance
+
+                @balance.setter
+                def balance(self, amount):   # Setter
+                    if amount >= 0:
+                        self.__balance = amount
+                    else:
+                        print("Invalid amount!")
+            Usage:
+            account = BankAccount(1000)
+
+            print(account.balance)   # Getter
+            account.balance = 2000   # Setter
+
+        👉 Looks like direct access, but still controlled!
+
+--------------------------------------------------------------------------
+✅ 2. What is __slots__?
+    Definition
+        __slots__ is used to restrict the attributes an object can have, and reduce memory usage.
+
+    👉 In simple terms:
+            “Only allow these variables in this class — nothing else.”
+
+    🧠 Why do we use it?
+            Saves memory (important for many objects)
+            Prevents accidental creation of new variables
+            Makes code stricter and safer
+            🧾 Example
+                class Student:
+                    __slots__ = ['name', 'age']
+
+                def __init__(self, name, age):
+                    self.name = name
+                    self.age = age
+
+                ✅ Usage:
+                s = Student("John", 20)
+
+                s.name = "Mike"   # ✅ allowed
+                s.age = 25        # ✅ allowed
+
+                s.marks = 90      # ❌ ERROR (not in __slots__)
+
+            🌍 Real-world analogy
+                🧳 Travel Bag with fixed compartments
+
+                    Imagine a bag with only:
+
+                        1 slot for clothes
+                        1 slot for shoes
+
+                    👉 You cannot add extra compartments
+
+                    ➡️ That’s __slots__:
+
+                        Fixed structure
+                        No extra attributes allowed
+                        🔥 Memory Insight (Important)
+
+                    Normally:
+
+                        Python stores object data in a dictionary (__dict__)
+                        This uses more memory
+
+                    With __slots__:
+
+                        No __dict__
+                        Uses less memory
+
+                    👉 Useful when creating thousands/millions of objects
+
+--------------------------------------------------------------
+✅ 1. What is @property?
+    Definition
+        @property is a decorator that lets you use a method like an attribute, while still keeping control over how the value is accessed or modified.
+
+    👉 In simple terms:
+            “It looks like a variable, but behaves like a method behind the scenes.”
+
+        🧠 Why do we use it?
+                To hide internal logic
+                To add validation
+                To make code clean and user-friendly
+        🧾 Example
+                class BankAccount:
+                    def __init__(self, balance):
+                        self.__balance = balance
+
+                    @property
+                    def balance(self):   # Getter
+                        return self.__balance
+
+                    @balance.setter
+                    def balance(self, amount):   # Setter
+                        if amount >= 0:
+                            self.__balance = amount
+                        else:
+                            print("Invalid amount!")
+                ✅ Usage:
+                acc = BankAccount(1000)
+
+                print(acc.balance)   # looks like variable → calls getter
+                acc.balance = 2000   # calls setter
+                acc.balance = -500   # invalid
+
+                🌍 Real-world analogy
+                🏦 ATM Machine
+                You check balance → looks simple
+                    But internally:
+                        system verifies account
+                        fetches data securely
+
+                👉 You don’t see the logic, just a simple interface
+                ➡️ That’s exactly what @property does
+
+                🔥 Key Idea
+
+                Without @property → get_balance()
+                With @property → balance
+
+                👉 Cleaner and more Pythonic
+
+-----------------------------------------------------------------------------
+✅ Q20. What is Abstraction? How is it different from Encapsulation?
+    Abstraction – Definition
+        Abstraction means showing only essential features and hiding internal implementation details.
+
+        👉 Focus: What to show, not how it works
+
+        🌍 Real-world example:
+
+                Car
+
+                You use:
+                    steering
+                    brake
+                    accelerator
+                    You don’t know how engine works internally
+
+        👉 That’s abstraction
+
+        Feature	  Abstraction	                                 Encapsulation
+        Focus	  What to show	                                 How to protect data
+        Goal	  Hide complexity	                             Restrict access
+        Example	  Driving a car	                                 Bank account balance protection
+
+        👉 Key idea:
+                Abstraction → hides complexity
+                Encapsulation → protects data
+
+---------------------------------------------------------------------------------
+Q21. What is an Abstract Class? Can it have a constructor?
+        Definition
+
+        An abstract class is a class that:
+
+            Cannot be instantiated
+            Contains abstract methods (methods without implementation)
+
+        👉 In Python, we use abc module
+
+        🧾 Example
+                from abc import ABC, abstractmethod
+
+                class Vehicle(ABC):
+
+                    def __init__(self, brand):
+                        self.brand = brand   # constructor
+
+                    @abstractmethod
+                    def start(self):
+                        pass
+        ❓ Can it have a constructor?
+
+        👉 Yes, absolutely!
+
+        Usage:
+        class Car(Vehicle):
+            def start(self):
+                print(f"{self.brand} car starts")
+
+        c = Car("Toyota")
+        c.start()
+        🌍 Real-world example:
+
+            Vehicle
+                Common properties → brand, fuel
+                Different behavior → start()
+
+----------------------------------------------------------------------------------
+Q23. Can an abstract class have non-abstract methods?
+
+👉 Yes!
+
+        🧾 Example
+            from abc import ABC, abstractmethod
+
+            class Animal(ABC):
+
+                @abstractmethod
+                def sound(self):
+                    pass
+
+                def sleep(self):   # normal method
+                    print("Sleeping...")
+
+        👉 Subclasses:
+
+                MUST implement sound()
+                CAN use sleep() directly
+                🌍 Example:
+
+                    All animals:
+
+                    Must make sound (abstract)
+                    Sleep same way (common method)
+----------------------------------------------------------------------------------------
+✅ What is Inheritance? What are its advantages?
+        Definition
+
+        Inheritance is a concept where one class (child/subclass) acquires properties and behavior of another class (parent/superclass).
+
+        👉 In simple terms:
+                “Reuse existing code instead of writing it again.”
+
+        🧾 Example
+        class Animal:
+            def eat(self):
+                print("Eating...")
+
+        class Dog(Animal):   # inherits Animal
+            def bark(self):
+                print("Barking...")
+        ✅ Usage:
+        d = Dog()
+        d.eat()   # inherited
+        d.bark()
+        🌍 Real-world example:
+
+                Dog IS an Animal
+
+                Animal → eat()
+                Dog → bark()
+                ✅ Advantages
+                    ♻️ Code reuse
+                    📉 Reduces duplication
+                    🧠 Better organization
+                    🔧 Easy to extend functionality
+
+------------------------------------------------------------------------------------
+Q31. What is the Diamond Problem?
+        Definition
+            Occurs in multiple inheritance when:
+                A class inherits from two classes
+                Both inherit from the same parent
+
+        👉 Causes confusion: Which method should be used?
+
+        🧾 Example
+                class A:
+                    def show(self):
+                        print("A")
+
+                class B(A):
+                    def show(self):
+                        print("B")
+
+                class C(A):
+                    def show(self):
+                        print("C")
+
+                class D(B, C):   # Diamond shape
+                    pass
+
+                d = D()
+                d.show()
+
+                👉 Output:B
+
+            🧠 Why?
+
+            Python uses MRO (Method Resolution Order) → left to right
+
+            🌍 Real-world analogy:
+
+                    Child learns same habit from:
+                        Mother
+                        Father
+                        (both learned from Grandparent)
+
+            👉 Whose version to follow? → confusion
+--------------------------------------------------------------
+Q32. Role of super() in inheritance
+    Definition
+        super() is used to call methods or constructors of the parent class.
+
+    🧾 Example
+            class Animal:
+                def __init__(self):
+                    print("Animal constructor")
+
+            class Dog(Animal):
+                def __init__(self):
+                    super().__init__()   # call parent constructor
+                    print("Dog constructor")
+        Output:
+            Animal constructor
+            Dog constructor
+        🌍 Real-world example:
+                Child says:
+        👉 “First do what parent says, then my own work”
+
+---------------------------------------------------------------------
+Can a subclass access private members of parent class?
+    👉 No (directly)
+
+    🧾 Example
+            class Parent:
+                def __init__(self):
+                    self.__secret = "hidden"
+
+            class Child(Parent):
+                def show(self):
+                    print(self.__secret)   # ❌ ERROR
+    ✔ Workaround:
+        print(self._Parent__secret)   # name mangling
+    🌍 Real-world example:
+            Parent keeps password private
+            Child cannot directly access it
+--------------------------------------------------------------------
+What is Method Overriding? Rules?
+    Definition
+        When a child class redefines a method of parent class.
+
+    🧾 Example
+    class Animal:
+        def sound(self):
+            print("Some sound")
+
+    class Dog(Animal):
+        def sound(self):   # overriding
+            print("Bark")
+    ✅ Rules:
+        Same method name
+        Same parameters (recommended)
+        Child method replaces parent method
+    🌍 Real-world example:
+            Animal → sound()
+            Dog → bark
+            Cat → meow
+-------------------------------------------------------------------
+IS-A vs HAS-A Relationship
+    IS-A (Inheritance)
+
+    👉 Represents inheritance
+
+    class Animal:
+        pass
+
+    class Dog(Animal):   # Dog IS-A Animal
+        pass
+
+    HAS-A (Composition)
+
+    👉 One class contains another
+
+    class Engine:
+        pass
+
+    class Car:
+        def __init__(self):
+            self.engine = Engine()   # HAS-A
+    🌍 Real-world example:
+            Dog IS-A Animal
+            Car HAS-A Engine
+-------------------------------------------------------------------
+What happens to constructors in inheritance?
+        Key points:
+            1. Parent constructor is NOT called automatically (in Python child overrides it)
+        👉 Must use super()
+
+        🧾 Example
+        class Parent:
+            def __init__(self):
+                print("Parent constructor")
+
+        class Child(Parent):
+            def __init__(self):
+                print("Child constructor")
+        Output:
+            Child constructor
+
+        ✔ With super()
+        class Child(Parent):
+            def __init__(self):
+                super().__init__()
+                print("Child constructor")
+        Output:
+            Parent constructor
+            Child constructor
+        🌍 Real-world example:
+                Parent builds foundation
+                Child builds on top
+
+        👉 Must call parent first
+
+----------------------------------------------------------------------------
+✅ 1. IS-A Relationship (Inheritance)
+    Definition
+
+        An IS-A relationship means:
+            👉 One class is a type of another class
+
+        It is implemented using inheritance.
+
+        🧠 Key Idea:
+
+                If you can say “X is a Y”, then use IS-A
+
+        🧾 Example
+        class Animal:
+            def eat(self):
+                print("Eating...")
+
+        class Dog(Animal):   # IS-A relationship
+            def bark(self):
+                print("Barking...")
+        ✅ Usage:
+            d = Dog()
+            d.eat()   # inherited
+            d.bark()
+        🌍 Real-world examples:
+                Dog IS-A Animal
+                Car IS-A Vehicle
+                Teacher IS-A Person
+        ✅ Characteristics
+                Uses inheritance
+                Promotes code reuse
+                Creates hierarchy
+                ❗ When to use IS-A?
+
+        Use it when:
+
+            There is a true hierarchical relationship
+            Child can logically replace parent
+
+        👉 Example:
+                A Dog can be treated as an Animal ✔
+
+        ✅ 2. HAS-A Relationship (Composition)
+        Definition
+
+            A HAS-A relationship means:
+            👉 One class contains another class as a part
+
+            It is implemented using composition (object inside another object).
+
+        🧠 Key Idea:
+
+            If you can say “X has a Y”, then use HAS-A
+
+        🧾 Example
+                class Engine:
+                    def start(self):
+                        print("Engine starting...")
+
+                class Car:
+                    def __init__(self):
+                        self.engine = Engine()   # HAS-A relationship
+
+                    def start_car(self):
+                        self.engine.start()
+                        print("Car started")
+                ✅ Usage:
+                c = Car()
+                c.start_car()
+        🌍 Real-world examples:
+                Car HAS-A Engine
+                House HAS-A Room
+                Computer HAS-A CPU
+        ✅ Characteristics
+                Uses objects inside classes
+                Promotes flexibility
+                Follows composition over inheritance
+                ❗ When to use HAS-A?
+
+        Use it when:
+
+            One object is a part of another
+            You want loose coupling
+
+        👉 Example:
+        Car is NOT an Engine ❌
+        Car HAS an Engine ✔
+
+        ⚖️ IS-A vs HAS-A (Clear Comparison)
+        Feature	IS-A	HAS-A
+        Relationship	Inheritance	Composition
+        Meaning	“is a type of”	“has a part of”
+        Code	class Dog(Animal)	self.engine = Engine()
+        Coupling	Tight	Loose
+        Flexibility	Less	More
+        🔥 Key Difference (Important)
+        ❌ Wrong design:
+        class Car(Engine):   # ❌ Car is NOT an Engine
+            pass
+        ✅ Correct design:
+        class Car:
+            def __init__(self):
+                self.engine = Engine()
+        🧠 Real-world Comparison
+        🚗 Car Example
+        Statement	Relationship
+        Car IS-A Vehicle	✔ IS-A
+        Car HAS-A Engine	✔ HAS-A
+        Car IS-A Engine	❌ Wrong
+        🧩 When to choose which?
+        👉 Use IS-A when:
+        There is natural hierarchy
+        You want to reuse behavior
+        👉 Use HAS-A when:
+        You want flexibility
+        Objects are independent parts
+        🚀 Advanced Insight (Interview Tip)
+
+        👉 Prefer HAS-A over IS-A in many cases
+
+        Why?
+
+        Less tightly coupled
+        Easier to modify
+        More scalable design
+
+----------------------------------------------------------------------------------
+1. Method Overloading
+        Definition
+            Method overloading means:
+                👉 Same method name with different parameters (number/type), performing different tasks
+        ⚠️ Important (Python behavior)
+                Python does NOT support true method overloading like Java/C++.
+
+                👉 If you define multiple methods with the same name, the last one overrides the previous ones.
+
+        🧾 How we achieve it in Python?
+
+                We simulate overloading using:
+
+                    Default arguments
+                    Variable arguments (*args)
+                🧾 Example
+                class Calculator:
+
+                    def add(self, a, b=0, c=0):
+                        return a + b + c
+                ✅ Usage:
+                calc = Calculator()
+
+                print(calc.add(2, 3))       # 5
+                print(calc.add(2, 3, 4))    # 9
+        🌍 Real-world example:
+            📱 Mobile phone calling
+            Call 1 person → 1 number
+            Call conference → multiple numbers
+
+        👉 Same action (call), different inputs
+
+        ✅ Key Points
+            Same method name
+            Different parameters
+            Achieved using flexible arguments in Python
+
+✅ 2. Method Overriding
+        Definition
+            Method overriding means:
+                👉 A child class provides its own implementation of a method already defined in the parent class
+
+            🧾 Example
+            class Animal:
+                def sound(self):
+                    print("Some sound")
+
+            class Dog(Animal):
+                def sound(self):   # overriding
+                    print("Bark")
+            ✅ Usage:
+            d = Dog()
+            d.sound()   # Bark
+        🌍 Real-world example:
+                🐾 Animals
+                Animal → sound()
+                Dog → bark
+                Cat → meow
+
+        👉 Same method, different behavior
+
+        ✅ Rules
+                Same method name
+                Same parameters (recommended)
+                Happens in inheritance
+        ⚖️ Method Overloading vs Overriding
+
+        🧠 Key Difference (Simple)
+                Overloading → same method, different inputs
+                Overriding → same method, different behavior
+        🔥 Quick Combined Example
+                    class Shape:
+                        def area(self):
+                            print("Calculate area")
+
+                    class Rectangle(Shape):
+                        def area(self):   # overriding
+                            print("Rectangle area")
+
+                    class Calculator:
+                        def add(self, a, b=0):   # overloading style
+                            return a + b
+----------------------------------------------------------------------
+
+How does python handle memory management and what role does garbage collection play?
+
+    Python manages memory allocation and deallocation automatically using private heap.
+    Where all objects and data structures are stored.
+    The memory management process is handled by python memory manager.which optimize memory usage and garbage collector ,which deals with unused or unreferenced objects to free up memory.
+
+    Garbage collection in python uses reference counting as well as a cyclic garbage collector to detect and collect unused data.
+    When an object has no more references it becomes eligible for garbage collection.
+    The GC module in python allows you to interact with garbage collector directly providing functions to enable or disable garbage collection, as well as to perform manual collection.
+

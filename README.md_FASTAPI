@@ -1,0 +1,544 @@
+1.  Flow of OAuth vs JWT
+
+     [ User ]
+        |
+        | Click "Login with Google"
+        v
+    [ Frontend ]
+        |
+        | Redirect (OAuth Request)
+        v
+    [ Google OAuth ]
+        |
+        | Auth + Consent
+        v
+    [ Frontend ] <--- Authorization Code ---
+        |
+        | Send code
+        v
+    [ Backend ]
+        |
+        | Exchange code
+        v
+    [ Google OAuth ]
+        |
+        | access_token + id_token (JWT)
+        v
+    [ Backend ]
+        |
+        | Verify JWT, create session
+        v
+    [ App Authenticated ]
+--------------------------------------------------------------------------------
+2.    Google OAuth flow
+
+        [ Client ]
+            |
+            | OAuth Login
+            v
+        [ Google OAuth ]
+            |
+            | id_token
+            v
+        [ Auth Service ]
+            |
+            | Issue JWT + Refresh Token
+            v
+        [ Client ]
+            |
+            | API Calls with JWT
+            v
+        [ Microservices ]
+            |
+            | Validate JWT locally (no DB call)
+            v
+        [ Scalable System 🚀 ]
+
+ ------------------------------------------------------------------------------------------------------------
+3.    Purpose of refresh token
+        1.Refresh token is a long-lived authorization token  used to generate a new access tokens without asking user to login again.
+        2.why refresh tokens needed?
+            1.security (limit damage if token is stolen)
+            2.stateless scaling
+            3.performance
+
+        3.Authentication flow:
+            user login
+                |
+            server verifies credentials
+                |
+            Generate
+                -> Access token(short expiry)
+                -> Refresh token(long expiry)
+
+        4.When access token expires:
+                client sends the refresh token
+                        |
+                server validates the token
+                        |
+                Generates the new token
+
+        5. Token Revocation
+            1.Delete refresh token from db
+            2.once user logout then token automatically useless
+
+
+        6.Rotation strategy
+            1.old token becomes invalid
+            2.new access token issued
+
+        Refresh tokens are used to generate new access tokens instead of asking user to login again due to this improve security and user experience in Authentication systems.
+
+-----------------------------------------------------------------------------------------------
+4.    In MySQL if we want to have cluster — if one goes down, other can serve — how many instances do we need?
+
+        Minimum 2 instances are required for failover (1 primary + 1 replica), but for a reliable and production-ready cluster, at least 3 instances are recommended to achieve quorum and avoid split-brain issues.
+
+        Minimum Setup
+            1.Two Instances (Basic Failover)
+
+            1 Primary (Master)
+            1 Replica (Slave)
+
+            ✔ Works for basic failover
+            ✖ Problem: Split-brain risk (no quorum / tie-breaker)
+            ✖ Failover often manual or needs external tool
+
+        Recommended Setup (Production)
+
+            2. Three Instances (Best Practice)
+
+            1 Primary
+
+            2 Replicas
+
+            OR in cluster-based systems:
+
+            3 nodes total
+
+            ✔ Provides quorum (majority voting)
+            ✔ Avoids split-brain problem
+            ✔ Enables automatic failover
+---------------------------------------------------------------------------------------------
+5.    Let’s say I am trying to protect DB by username & password — how to do it in Flask without secret manager?
+        Instead of using secret manager We can store the credentials using .env file then we can load these into the application without hard-coding in source code.
+
+        if we store secrets in source code:
+            Any one can able to see whoever is accessing the bitbucket
+            unsafe if repo becomes public
+            It may get committed to git
+        use .env file for reading the secrets from it and load using python-dotenv package for local development.
+------------------------------------------------------------------------------------------------------------------
+25.   how to connect the db(explain multiple approaches)
+        Connecting to a database (DB) depends on the language and database you are using. There are multiple approaches commonly used in applications.
+
+    Below are the main approaches with examples.
+
+    1. Direct Connection Using Driver (Low-Level Approach)
+
+       In this approach, the application directly connects to the database using a database driver.
+
+            Steps:
+
+                Install DB driver
+
+                Provide connection parameters:
+                    host
+                    username
+                    password
+                    database name
+
+                Create connection
+
+                Execute queries
+
+                Example (Python + MySQL)
+                    import mysql.connector
+
+                    conn = mysql.connector.connect(
+                        host="localhost",
+                        user="root",
+                        password="1234",
+                        database="testdb"
+                    )
+
+                    cursor = conn.cursor()
+                    cursor.execute("SELECT * FROM users")
+
+                    for row in cursor:
+                        print(row)
+
+                    conn.close()
+
+                    Time Complexity
+                    Connection creation → O(1)
+                    Query execution depends on query complexity
+
+                    Pros
+                        ✔ Simple
+                        ✔ Full control
+
+                    Cons
+                        ✖ Manual query handling
+                        ✖ Hard to maintain in large systems
+
+       2. Using ORM (Object Relational Mapping)
+
+            ORM maps database tables → programming objects.
+
+            Popular ORMs:
+
+                Hibernate (Java)
+
+                SQLAlchemy (Python)
+
+                Entity Framework (.NET)
+
+                Django ORM`
+
+            Example (Python SQLAlchemy)
+            from sqlalchemy import create_engine
+
+            engine = create_engine("mysql+pymysql://root:1234@localhost/testdb")
+
+            conn = engine.connect()
+            result = conn.execute("SELECT * FROM users")
+
+            for row in result:
+                print(row)
+            Pros
+
+                ✔ Less SQL writing
+                ✔ Easy maintenance
+                ✔ Object-based programming
+
+            Cons
+
+                ✖ Slightly slower than raw SQL
+                ✖ Learning curve
+
+            3. Connection Pooling
+
+                Instead of creating a new DB connection every time, the system reuses existing connections.
+
+            Used in:
+                Spring Boot
+                Node.js
+
+            Large web applications
+            Example Concept
+                Application
+                     ↓
+                Connection Pool
+                     ↓
+                Database
+            Pros
+
+                ✔ Faster performance
+                ✔ Scalable for many users
+
+            Cons
+
+                 ✖ Slightly complex configuration
+
+       4. Using API / Middleware Layer
+
+            Sometimes applications do not connect directly to DB. Instead they call an API service.
+
+            Example architecture:
+
+                Frontend → Backend API → Database
+
+                Example:
+                    React → Node.js → MySQL
+                    Angular → Spring Boot → PostgreSQL
+            Pros
+
+            ✔ Secure
+            ✔ Clean architecture
+
+            Cons
+
+            ✖ Requires backend service
+
+       5. Using Environment Configuration
+
+            Database credentials are stored in config files or environment variables.
+
+            Example .env
+
+                DB_HOST=localhost
+                DB_USER=root
+                DB_PASS=1234
+                DB_NAME=testdb
+
+            Application reads this configuration when connecting.
+
+            Pros
+                ✔ Secure
+                ✔ Easy deployment
+
+            Summary
+                Approach Used In Complexity
+                    Direct Driver	Small apps	Simple
+                    ORM	Enterprise apps	Medium
+                    Connection Pool	High traffic systems	Medium
+                    API Layer	Modern architectures	Medium
+                    Environment Config	Production systems	Best practice
+
+    ✅ In interviews, a good answer is:
+
+       “Database can be connected using drivers, ORM frameworks, connection pooling, or via backend APIs. In production systems, we usually combine ORM + connection pooling for performance and maintainability.”
+-----------------------------------------------------------------------------------------------------
+#idempotent in RestAPI
+    1.An operation is idempotent if making the same request multiple times produces the same result as making it once.
+        Not Same response -but same effect on server state.
+    Making the same request multiple times will always produce the same result(no additional side effects after the first call)
+    Repeating it 1 time or 100 times ->> same outcome on the server
+
+    Think of a light switch:
+        Turning it ON once ->> light is ON
+        Turning it ON again ->> still ON(no change) This is idempotent
+
+        Idempotent HTTP Methods:
+            GET (Idempotent)
+                Fetch data
+                No change in server state
+            Calling multiple times ->>same data
+
+            PUT(Idempotent)
+                Replace resource completely
+                Sending it multiple times:
+                    User remains "venkat"
+                    No extra changes
+
+            DELETE /users/123(Idempotent)
+                First call → user deleted ✅
+                Second call → user already gone ✅
+                Final state → user does not exist
+        Non - Idempotent Methods:
+            POST(Not Idempotent)
+                Each request creates a new user
+                multiple calls ->> multiple records
+            PATCH(Usually Not Idempotent)
+                if it increments
+    Why Idempotency Matters:
+        Safe retries:
+            if a request fails(network issue),you can retry without risk
+        Distributed systems:
+            Prevents duplicate operations in microservices.
+        Prevents bugs:
+            Avoids unintended duplicate data(payments,orders etc).
+    Even POST can be made idempotent using:
+        Idempotent keys
+    same key -processed only once
+
+------------------------------------------------------------------------------
+Restapi constrains
+
+    client-server
+    stateless
+    cache
+    uniform-interface ->> we need to request same for module app/desktop app/web app
+    Layered-System ->> We need to follow multiple layers then if any one layer effect it can't effect other layers
+    Code on Demand ->> along with the response we will send the code also based on requirements.
+
+
+What is API?
+    APIs are mechanisms that enables two software components to communicate with each other using a set of definitions and protocols.
+
+Different types of API's?
+
+    public API: These are open to the public and may be used by anyone
+    private API: These are internal to an enterprise and only used for connecting systems and data within the business
+    partner API: These are only accessible by authorized external developers to aid business to business partnerships.
+    composite API: These combine two or more different APIs to address
+
+Session: Server side stored the client information (server memory)
+cookie: When server sent back with SessionId then client browser store this information.
+
+API Gateway:
+    Single entry point that routes clients requests to the appropriate microservices.
+    Responsible for:
+        Routes requests
+        Handles authentication
+        Applies rate limiting
+        Logs requests
+Observability:
+    Provides visibility into system behaviour through logging,monitoring and tracing.
+
+    Centralized logging
+    Performance monitoring
+    Request tracing across services
+
+Stateful VS Stateless:
+    Stateful systems remember past interactions(maintaining session data),while stateless systems treat each request independently with no memory of prior actions. In practice,stateful designs are useful for personalized experiences like shopping carts, while stateless designs are better for scalability and reliability ,such as REST APIs.
+
+    📌 Real-Time Examples
+            Stateful Examples
+            Shopping Cart on Amazon: When you add items, the server remembers your cart until checkout. If the server didn’t maintain state, your cart would reset every time you refreshed the page.
+
+            Online Banking: Once logged in, the server keeps track of your session so you don’t need to re-enter credentials for every action.
+
+            Multiplayer Games: Game servers track player positions, scores, and progress continuously.
+
+            Stateless Examples
+                REST APIs: Each API call must include all necessary authentication (like tokens) because the server doesn’t remember previous calls.
+
+            HTTP Protocol: Every request (e.g., loading a webpage) is independent; the server doesn’t know if two requests come from the same user unless cookies or tokens are used.
+
+            DNS Queries: Each query for a domain name is independent; the server doesn’t remember past lookups.
+
+            ⚖️ When to Use Each
+                    Use Stateful when personalization, continuity, or long-running interactions are required (e.g., e-commerce, banking, gaming).
+
+                    Use Stateless when scalability, fault tolerance, and simplicity are priorities (e.g., APIs, microservices, cloud-native apps).
+
+            🚨 Risks & Trade-offs
+            Stateful Systems: More complex to scale, risk of session loss if servers fail, higher memory usage.
+
+            Stateless Systems: Require clients to send more data with each request, can feel less “personalized” without additional mechanisms like tokens or cookies.
+
+            👉 In short: Stateful = memory + continuity, Stateless = independence + scalability. For modern distributed systems (like microservices), stateless is often preferred, but stateful is essential for user-centric applications like shopping and banking.
+
+            🔑 Key Differences Between Stateful and Stateless
+                    Aspect	    Stateful	                                                        Stateless
+                    Definition	Server maintains client session data across requests.	            Each request is independent; no session data stored on server.
+                    Memory Use	Requires server memory or database to store state.	                No memory required; all context must be sent with each request.
+                    Scalability	Harder to scale (session data must be synchronized across servers).	Easier to scale (servers can handle requests independently).
+                    Reliability	If server crashes, session data may be lost.	                    No dependency on server memory; requests can be routed anywhere.
+                    Examples	Online banking login, shopping cart, multiplayer games.	            REST APIs, DNS, HTTP requests, microservices.
+-----------------------------------------------------------------------------------------------------------
+FastAPI:
+
+Dependency Injection:
+    In programming Dependency injection is a design pattern where dependencies -like services, database connections, or utility classes- are passed into a function or class,rather than being created inside it.
+    from fastapi import FastAPI,Depends
+    app= FastAPI()
+    def get message():
+        return True
+    @app.get("/")
+    def home(msg:str= Depends(message)):
+        pass
+    FastAPI uses the depends function to inject reusable logic into your path operations automatically.These dependencies can return values like user info,settings or even raise exceptions like authentication failures.
+
+Dependencies flow in FastAPI:
+    Request hit the endpoint
+    Fastapi executes the dependency(e.g.,authentication)
+    if the dependency raises no error, it returns a value
+    That value is passed into the path operation function
+    Then ,the actual business logic in the endpoint is executed
+    Examples:
+        Database Session injection: In a web app,you need to query or update the database in multiple routes,you don't want to manually connect/disconnect every time.
+        Authentication/Authorization : You want to protect routes and allow only logged-in users or admins
+        Pagination parameter: API should support page and limit query params across multiple endpoints
+        Custom Logger or Timer: Log request time or performance across routes.
+        Reusable Form/File Validation: Common form validation logic used in multiple places
+---------------------------------------------------------------------------------------------------
+Background Task:
+    A Background task is a process that runs after the API responses is sent,allowing the application to perform  time-consuming operations in the background without making the user wait.
+    It helps in non-blocking execution -- meaning the main request thread is free to handle new requests while the background task continues running.
+
+    Key points:
+        Runs after the response is sent to the client(non-blocking)
+        Used to perform time-consuming or secondary operations in the background.
+        Keeps the API fast and responsive -- user doesn't have to wait.
+        Perfect for tasks that don't need instant results.
+        Frees up the main thread for handling new incoming requests.
+        Helps achieve asynchronous execution without blocking other requests.
+    use cases:
+        sending emails or notifications
+        uploading or processing large files
+        Generating reports or PDFs
+        Running background AI or ML model predictions
+        cleaning up old data or logs
+        saving analytics or tracking user activity asynchronously
+    Example:
+        def send_mails():
+            sleep(10)
+            print("Email sent")
+        @app.get("/")
+        async def main(bg:BackgroundTasks):
+            bg.add_task(send_mails)
+            return "Welcome"
+-----------------------------------------------------------------------------------------------
+What is CORS?
+    CORS = Cross-Origin Resource Sharing
+    It is a security rule implemented by the browser
+    CORS controls frontend->>backend communication when origins are different.
+    Origin = protocol+domain+port
+    Example:
+        FastAPI:http://locahost:8000
+        React:http://localhost:3000
+    since ports differ ->> origin is different ->> CORS rule applies.
+Why CORS Exists?
+    CORS exists to protect user and backend APIs.
+    Prevents malicious websites from calling backend APIs without permission
+    Example: A fake website should not access your backend data.
+    When backend doesn't allow the origin ->> browser throws error
+        Blocked by CORS policy
+    Important:
+        Request reaches backend
+        Backend sends response
+        but browser blocks response due to missing CORS headers
+
+How Browser Allows Cross-Origin?
+    Browser checks if backend sends permission headers
+    Backend must send:
+        Access-control-Allow-Origin
+    Example:
+        Access-Control-Allow-Origin:http://localhost:3000
+    Browser also checks:
+        allowed methods:GET/POST/PUT?DELETE
+        allowed headers:Authorization,Content-Type
+    If allowed ->> browser shows response to frontend
+
+
+CORS in Middleware:
+    middleware runs before API route and after route response
+    CORS must apply to all endpoints(global solution)
+    Middleware automatically:
+        adds CORS headers to every response
+        handles OPTIONS preflight request
+    Without middleware, you must manually add headers in every API
+    So middleware is the standard + clean approach
+
+ FastAPI CORS Middleware Code:
+    from fastapi import FastAPI
+    from fastapi.middleware.cors import CORSMiddleware
+    app= FastAPI()
+    app.add_middleware(CORSMiddleware,
+                        allow_origins=["*"],
+                        allow_methods=["*"],
+                        allow_headers=["*"],
+                        allow_credentials=True,)
+    @app.middleware("http")
+    async def middleware(request,call_next):
+        print("before")
+        response= await call_next(request)
+        print("after")
+        return response
+
+
+    allow_origins ->> which frontend is allowed
+    allow_methods ->> which HTTP methods are allowed
+    allow_headers ->> which headers are allowed
+    allow_credentials ->> cookies/sessions support
+---------------------------------------------------------------------------------------------
+What is Middleware:
+    Middleware is a function that runs before and after every API request
+    It allows running common logic for all APIs without writing code in each route
+    Middleware works like a gatekeeper for APIs
+    It can be used to control,monitor, or log requests
+    Middleware runs automatically once registered
+    No need to call middleware inside path operations
+    Middleware executes outside the route logic
+    Typical uses:
+        logging requests
+        security checks
+        performance monitoring
+        Request validation at entry level
+    Middleware is usually registered in main.py
+    Multiple middlewares can be used and they executed in defined order
+-------------------------------------------------------------------------------------------------
+

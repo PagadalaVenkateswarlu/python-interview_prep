@@ -1,0 +1,1559 @@
+Lazy loading
+    Lazy loading in Python means deferring the creation or loading of an object/resource until it is actually needed. Instead of doing work upfront, you delay it to improve performance
+    reduce memory usage.
+
+        🧠 Core Idea
+
+        “Don’t compute or load something until you really need it.”
+
+        🔧 Why It Matters (Tech Lead Perspective)
+
+        Lazy loading is useful when:
+
+            Initialization is expensive (DB calls, large files, APIs)
+            Data may never be used
+            You want faster startup time
+            You’re optimizing memory footprint
+
+        ⚙️ Common Patterns in Python
+                1. Lazy Evaluation with Generators
+
+                Generators compute values on demand.
+
+                def lazy_numbers():
+                    for i in range(1000000):
+                        yield i
+
+                Values are generated one at a time
+
+                No large list in memory
+
+        2. Lazy Attributes (using @property)
+
+        Load something only when accessed:
+
+        class User:
+            def __init__(self):
+                self._profile = None
+
+            @property
+            def profile(self):
+                if self._profile is None:
+                    print("Loading profile...")
+                    self._profile = self._load_profile()
+                return self._profile
+
+            def _load_profile(self):
+                return {"name": "Alice"}
+
+        👉 First access → loads data
+        👉 Subsequent access → cached result
+
+        3. Lazy Imports
+
+            Delay importing heavy modules:
+
+            def process_data():
+                import pandas as pd
+                return pd.DataFrame()
+
+            Improves startup time
+
+            Useful in CLI tools / microservices
+
+        4. Using functools.lru_cache
+
+            Cache results of expensive computations:
+
+            from functools import lru_cache
+
+            @lru_cache(maxsize=None)
+            def compute(x):
+                print("Computing...")
+                return x * x
+
+            👉 First call → computes
+            👉 Next calls → reused (lazy + memoization)
+
+        5. Proxy Pattern (Advanced)
+
+        Wrap an object and delay its creation:
+
+        class Database:
+            def connect(self):
+                print("Connecting...")
+
+        class LazyDB:
+            def __init__(self):
+                self._db = None
+
+            def connect(self):
+                if self._db is None:
+                    self._db = Database()
+                return self._db.connect()
+        📊 When to Use vs Avoid
+        ✅ Use Lazy Loading When:
+
+        Expensive operations (I/O, DB, large ML models)
+
+        Rarely accessed data
+
+        Improving API responsiveness
+
+        ❌ Avoid When:
+
+        Data is always needed anyway (adds complexity)
+
+        Debugging complexity matters
+
+        Real-time systems needing predictable latency
+
+        ⚠️ Trade-offs
+        Benefit	Cost
+        Faster startup	First access slower
+        Lower memory usage	More complex code
+        Avoid unnecessary work	Harder debugging
+        🎯 Tech Lead Summary
+
+        Lazy loading is a performance optimization pattern
+
+        Combine with:
+
+            caching (lru_cache)
+
+            async I/O
+
+        Be mindful of:
+
+            hidden latency spikes (first access)
+
+            thread safety if used in concurrent systems
+-----------------------------------------------------------------------------------------------------
+1.    There are multiple routes in Angular — how to protect certain routes and open certain routes — how to do it?
+
+------------------------------------------------------------------------------------------------------
+4.    Where to store the secrets and why — in frontend or backend?
+        1.secrets should always be stored in backend only not frontend.
+        2.Frontend code is public by nature(mobile app/browser)
+        3.even we hide the passwords in front end.
+            1.user can open developer tools
+            2.view java scripts bundles
+            3.inspect network requests
+
+        3.secret keys like:
+            1.api keys
+            2.database credentials
+            3.jwt tokens
+            4.OAuth client secrets
+
+        4.Backend code runs on our servers not on the user side.
+            1.access can be restricted
+            2.secrets are not exposed
+            3.you can control whom needs to use
+            4.you can rotate them safely
+
+        5.Where to store secrets in Backend.
+            secret Managers:
+                HashiCorp Vault
+                Google secret Manager
+                Aws secrets Manager
+            .env files(not commited to git)
+            environment variables
+
+        when frontend key are exposed
+            1. if keys are public no harmful if exposed also
+
+        if misuse of key causes the damage or cost money ->> so always keep secrets in backend only.
+---------------------------------------------------------------------------------------------------
+13.   In Python list data structure, what is the underlying data structure used?
+        1.a dynamic array of references (pointers)
+        2.Python list implemented as a resizable dynamic array
+        3.Internally, it uses contiguous block of memory
+        4.Stores references to objects, not the objects themselves
+
+        Python list: [10, "hello", 3.14]
+
+        Memory layout:
+
+        +-----------------------------+
+        | ptr | ptr | ptr | empty ... |
+        +-----------------------------+
+           ↓     ↓      ↓
+          10   "hello"  3.14
+        We can access list using index cause it uses contiguous block of memory (CPU cache friendly)
+        costly insert/delete in middle
+        Dynamic resizing
+-----------------------------------------------------------------
+"If __name__=="__main__":
+    Every python file has a special variable called __name__.
+    When the file run directly python sets __name==__main__
+
+    When file is imported from another file python sets __name__=="modular name"
+
+    So this condition:
+        if __name__=="__main__":
+            means:
+                Run the code inside the block only when the file is executed directly not when it is imported
+
+        Why is this powerful?
+            keeps testing/demo code separate from reusable functions
+            prevents unwanted execution when the modules are imported
+-------------------------------------------------------------------------
+14.   Is Python compiled or interpreted? details explain
+
+      1.Python is interpreted as well as compiled language also
+      2.but in high level python is an interpreted language it will compiled internally to bytecode before execution.
+      3.python internally convert source code(.py) to byte code compiled(.pyc files)
+      4.when we trigger python function first it will convert source file to byte code and then compiled byte code is executed by using  python virtual machines(PVM)
+      Python is Interpreted because:
+        No separate compile step is needed
+        run the code line-by-line at runtime
+        easier debugging
+        platform independent
+
+#####################################################################################
+15.   In .pyc files, are bytecodes same as while compiling C program?
+
+        1.No - Python.pyc bytecode is not the same as Compiled C program code. they are very different in how they are generated and executed.
+        2.When python file execute then .py file is converted to .pyc compiled file (bytecode)
+        3.This Bytecode is not machine code it is instruction for Python Virtual Machine(PVM).
+
+     The interpreter reads and executes these instructions one by one
+     In c compile produce machine code directly for the cpu (No Virtual machine is needed)
+
+     The Python Virtual Machine (PVM) is the engine inside Python that executes your code. It takes compiled Python bytecode and runs it line by line, acting as the interpreter between your program and the computer’s hardware.
+⚙️ Key Points About PVM
+        Role: Executes Python bytecode generated from .py files.
+
+        Interpreter: Provides a consistent environment across platforms (Windows, Linux, macOS).
+
+        Stack-based architecture: Uses a stack to evaluate expressions and manage function calls.
+
+        Part of CPython: The default Python implementation includes the PVM.
+
+        Execution model:
+
+            Source code → .py file
+
+            Compilation → Bytecode (.pyc)
+
+            Execution → PVM runs bytecode line by line
+
+🔑 Short Explanation in Simple Lines:
+
+        Python code is first compiled into bytecode.
+
+        The PVM reads and executes this bytecode.
+
+        It works as a software layer between code and hardware.
+
+        Ensures Python runs the same way on different systems.
+
+        Errors during execution are handled by the PVM.
+
+📖 Real-world Analogy
+
+        Think of the PVM as a chef in a kitchen:
+
+        The recipe (Python code) is written in English.
+
+        It’s translated into step-by-step instructions (bytecode).
+
+        The chef (PVM) follows those instructions exactly to prepare the dish.
+
+📊 Quick Comparison Table
+        Step	             What Happens	                                       Example
+        Source Code	         You write Python (print("Hello"))	                   .py file
+        Compilation	         Python converts to bytecode	                       .pyc file
+        Execution	         PVM runs bytecode	                                   Output: Hello
+
+✅ In short: PVM is the heart of Python execution. It makes your code run by interpreting bytecode, ensuring portability and consistency across platforms.
+---------------------------------------------------------------------------------------------------
+16.   what is decorator and Write a programme.
+        Decorator is a pattern that let you wrap or modify the behavior of the function or method without changing its actual code.
+        its commonly used used for cross-cutting concerns:
+                logging
+                caching
+                retries
+                timing
+        Decorators are high-level functions(functions that take/return functions)
+        A light weight alternative to full-blown Aspect-oriented-programming(ASP)
+        A mechanism to compose behavior dynamically
+
+        Core Concept:
+            Takes the function as input
+            defines the inner wrapper functions
+            Add the extra behavior before and after main function
+            returns the wrapper function
+
+            sample programming:
+                    def decorator(func):
+                        def wrapper():
+                            print("Before the function")
+                            func()
+                            print("After the function")
+                        return wrapper
+                    @decorator
+                    def outer_decor():
+                        print("Inner function")
+
+                    outer_decor()
+
+                   ##############
+                    import time
+                    import logging
+                    from functools import wraps
+                    logging.basicConfig(level = logging.INFO)
+
+                    def decorator(func):
+                        @wraps(func)
+                        def wrapper():
+                            start = time.time()
+                            try:
+                                print(func.__name__)
+                                print(f"Before the function -{start}")
+                                func()
+                                print(func.__name__)
+
+                            except Exception as e:
+                                logging.error(f"Error in {func.__name__}")
+                                raise
+                            finally:
+                                end = time.time() - start
+                                print(f"After the function - {end}")
+                                logging.info(func.__name__)
+                        return wrapper
+                    @decorator
+                    def outer_decor():
+                        print("Inner function")
+
+                    outer_decor()
+
+        Critical for :
+            observability(logging,tracing)
+            performance(caching,memoization)
+            reliability(retry,circuit breaker)
+
+        def outer():
+            cache = {}
+            def inner(func):
+                def wrapper(n):
+                    if n in cache:
+                        return cache[n]
+                    result = func(n)
+                    cache[n] = result
+                    return result
+                return wrapper
+            return inner
+        @outer()
+        def calling(n):
+            if n<=1:
+                return n
+            return calling(n-1) + calling(n-2)
+        print(calling(10))
+
+------------------------------------------------------------------------------------------
+17.   what is instance method ,class method, static method
+
+        Class Methods:
+            1.Class methods are associated with the class rather than instance variables.
+            2.They are defined using @classmethod decorator
+            3.Take the cls as a first parameter (cls)
+            4.Class methods are useful for tasks that involve the class rather than the instance
+            5.Such as creating class-specific behaviors or modifying class-level attributes.
+            example:
+                class MyClass:
+                    class_variable = 0
+
+                    def __init__(self, value):
+                        self.instance_variable = value
+
+                    @classmethod
+                    def class_method(cls, x):
+                        cls.class_variable += x
+                        return cls.class_variable
+
+                # Creating instances of the class
+                obj1 = MyClass(5)
+                obj2 = MyClass(10)
+
+                # Calling the class method
+                print(MyClass.class_method(3))  # Output: 3
+                print(MyClass.class_method(7))  # Output: 10
+
+        Static Method:
+                1.In Static method we no need to pass cls or self as a first parameter
+                2.We can pass @staticmethod as a decorator
+                3.Static methods are regular functions within the class namespace
+                4.Used for the tasks that are not depends on class methods or instance methods
+
+                example:
+                    class Static:
+
+                        @staticmethod
+                        def sum_of(a,b):
+                            return a+b
+        Instance Methods:
+            1.Instance methods are most common type of methods in python classes
+            2.They are associated with class and instance data
+            3.For instance methods first parameter is self
+            4.self refers to the instance calling method
+            5.This allows method to access and manipulate the instance's attributes.
+
+            example:
+                class Person:
+                    def __init__(self, name, age):
+                        self.name = name
+                        self.age = age
+
+                    def introduce(self):
+                        return f"Hi, I'm {self.name} and I'm {self.age} years old."
+
+
+                # Creating an instance of the class
+                person1 = Person("Kishan", 20)
+
+                # Calling the instance method
+                print(person1.introduce())  # Output: Hi, I'm Kishan and I'm 30 years old.
+
+-------------------------------------------------------------------------------------------
+18.   what is MRO and explain?
+
+        What is MRO (Method Resolution Order)?
+
+        👉 MRO = the order in which Python looks for methods and attributes in a class hierarchy
+
+      Diamond Problem (classic interview case)
+            A
+           / \
+          B   C
+           \ /
+            D
+        class A:
+            def show(self):
+                print("A")
+
+        class B(A):
+            pass
+
+        class C(A):
+            pass
+
+        class D(B, C):
+            pass
+
+        MRO:
+        D → B → C → A → object
+
+        👉 Even though A appears twice, it's called only once
+
+        Why MRO matters in real systems?
+
+            1. Method overriding conflicts
+
+      The core rule: C3 Linearization
+        1. Left-to-right priority
+        2. No duplicates
+            Each class appears only once
+        3.Monotonicity (very important)
+            Child class order respects parent order
+            👉 Prevents unpredictable behavior
+      Because python follows C3 Linearization(MRO algorithm)
+
+      Diamond problem :
+            class A:
+                def show(self):
+                    print("A")
+            class B(A):
+                def show(self):
+                    print("B")
+            class C(A):
+                def show(self):
+                    print("C")
+            class D(B,C):
+                def show(self):
+                    print("D")
+           d = D()
+           print(d.show)
+           print(D.__mro__)
+      Why python handles Diamond problem well
+        uses L3 Linearization algorithm
+            it ensures:
+                no class is called twice
+                predictable order
+                maintain hierarchy consistency
+      common mistakes:
+            Assuming super() calls direct parent
+            ignoring MRO in multiple inheritance
+            not designing cooperative classes (missing super())
+      use multiple inheritance when classes are independent behaviours
+      Always design classes to be MRO-friendly(use super())
+--------------------------------------------------------------------------------------------------
+* Super() class ?
+    super() is used to call next method in the MRO, enabling proper method chaining and supporting clean multiple inheritance
+    That next method is decided by MRO and  super() ensures the chain continues correctly.
+
+    when we will use super():
+        use it when:
+            overriding methods
+            calling parent constructor
+            working with multiple inheritance
+            building extensible systems
+    super() as :
+        Call the next method in the MRO chain,not necessarily the parent.
+
+        useful for:
+            Cooperative multiple inheritance
+            framework design
+            writing reusable mixins
+
+    Key Benefits:
+        cleaner and maintainable code
+        works with dynamic inheritance hierarchies
+        Enables safe multiple inheritance
+        prevents duplicate method calls
+
+    ✅ 4. Used in Constructors (__init__)
+
+    Very common in real systems:
+        class Person:
+            def __init__(self, name):
+                self.name = name
+
+        class Employee(Person):
+            def __init__(self, name, salary):
+                super().__init__(name)
+                self.salary = salary
+
+    👉 Ensures parent initialization is not skipped.
+
+    class A:
+    def show(self):
+        print("A")
+
+    class B(A):
+        def show(self):
+            print("B")
+            super().show()
+
+    class C(A):
+        def show(self):
+            print("C")
+            super().show()
+
+    class D(B, C):
+        def show(self):
+            print("D")
+            super().show()
+
+    d = D()
+    d.show()
+
+-------------------------------------------------------------------------------------
+19.   what is inheritance anc explain the multilevel inheritance.
+
+        Inheritance is an OOP concept where one class acquires properties and behaviors from another class
+
+        it helps:
+            reuse
+            extensible
+            maintaining hierarchical relationships
+        Inheritance is used to extending/reuse functionality of one class to another class.
+
+        multilevel ->> Grandparent ->> parent ->> child
+
+        example:
+            class GrandParent:
+                def grandparent(self):
+                    print("Grand Parent class")
+            class Parent(GrandParent):
+                def parent(self):
+                    print("Parent class")
+            class Child(Parent):
+                def child(self):
+                    print("child class")
+
+            ch = Child()
+            ch.child()
+            ch.parent()
+            ch.grandparent()
+        🔹 Real-World Analogy
+
+            Think of a company hierarchy:
+
+            Employee → basic info
+
+            Manager (inherits Employee) → manages team
+
+            Senior Manager (inherits Manager) → handles multiple teams
+
+            👉 Senior Manager automatically gets:
+
+                Employee features
+
+                Manager features
+
+                Plus its own
+
+            🔹 Key Benefits
+
+                Promotes reusability
+
+                Supports hierarchical design
+
+                Makes system scalable and maintainable
+
+            🔹 When to Use Multilevel Inheritance
+
+                Use it when:
+
+                    There is a clear “is-a” relationship
+
+                    Each level adds meaningful specialization
+
+                    You are modeling real-world hierarchy
+
+            🔹 Caution (Important for Interviews)
+
+                    Too many levels → tight coupling
+
+                    Harder debugging and testing
+
+                    Prefer composition over inheritance in complex systems
+-------------------------------------------------------------------------------------------
+
+26.  what is the  difference between Function and class based component.
+
+--------------------------------------------------------------------------------------------
+27.  difference b/t multiprocessing and multithreading
+        Multithreading - Multiple threads within the same process(shared memory)
+        multiprocessing - Multiple independent processes(separate memory)
+
+        Multithreading
+            one process ,multiple workers(threads)
+            All share same memory space
+        like: multiple chefs in one kitchen
+
+        Multiprocessing:
+            Multiple processes,each with its own memory
+            communicate via IPC(pipes,queues)
+        like: multiple kitchens working independently
+
+        import threading
+        import time
+
+        def task():
+            print("Task start")
+            time.sleep(2)
+            print("Task end")
+
+        t1 = threading.Thread(target=task)
+        t2 = threading.Thread(target=task)
+
+        t1.start()
+        t2.start()
+
+        t1.join()
+        t2.join()
+------------------------------------------
+        from multiprocessing import Process
+        import time
+
+        def task():
+            print("Task start")
+            time.sleep(2)
+            print("Task end")
+
+        p1 = Process(target=task)
+        p2 = Process(target=task)
+
+        p1.start()
+        p2.start()
+
+        p1.join()
+        p2.join()
+
+        | Feature           | Multithreading 🧵         | Multiprocessing ⚙️      |
+        | ----------------- | ------------------------- | ----------------------- |
+        | Memory            | Shared                    | Separate                |
+        | Communication     | Easy (shared variables)   | Hard (IPC needed)       |
+        | Speed (CPU tasks) | ❌ Limited (GIL in Python) | ✅ True parallelism      |
+        | Speed (I/O tasks) | ✅ Very efficient          | ❌ Overkill              |
+        | Overhead          | Low                       | High                    |
+        | Fault Isolation   | ❌ One crash affects all   | ✅ Independent processes |
+
+
+        🔴 The GIL Problem (Very Important)
+
+        In Python:
+
+            👉 Global Interpreter Lock (GIL)
+
+                Only one thread executes Python bytecode at a time
+
+        Impact:
+
+            Multithreading ❌ NOT good for CPU-heavy tasks
+
+            Multiprocessing ✅ best for CPU-heavy tasks
+
+        🔹 Real-World Use Cases
+
+           ✅ Use Multithreading When (I/O Bound)
+
+                API calls
+
+                File reading/writing
+
+                Web scraping
+
+                Database queries
+
+        👉 Example:
+
+                Web server handling multiple requests
+
+        ✅ Use Multiprocessing When (CPU Bound)
+
+            Image processing
+
+            Machine learning
+
+            Data transformation
+
+            Heavy computations
+
+        👉 Example:
+
+            Training ML models
+
+            Video encoding
+
+            🔹 Real Production Example
+            🚀 Web Backend
+
+        Threads → handle multiple user requests (I/O)
+
+        Processes → scale across CPU cores
+
+        🧠 Data Pipeline
+
+                Multiprocessing → parallel data processing
+
+                Threads → async I/O operations
+
+        🔹 Code Comparison (CPU Task)
+        # CPU heavy task
+        def compute():
+            sum(i*i for i in range(10**7))
+
+        👉 Threads → slow (GIL)
+        👉 Processes → fast (parallel cores)
+
+        🔹 Tech Lead Insights 💡
+        ✅ Decision Rule
+
+            I/O-bound → Multithreading
+
+            CPU-bound → Multiprocessing
+
+        ⚠️ Design Considerations
+
+        Multiprocessing:
+
+            Serialization cost (pickle)
+
+            Memory duplication
+
+        Multithreading:
+
+        Race conditions
+
+        Deadlocks
+
+        🔴 Common Pitfalls
+        ❌ Using threads for CPU-heavy work
+
+        → No performance gain due to GIL
+
+        ❌ Ignoring synchronization in threads
+
+        → Data corruption
+
+        ❌ Overusing multiprocessing
+
+        → High memory usage + overhead
+
+        🔹 Bonus: Hybrid Approach (Advanced)
+
+        Modern systems use:
+
+        Async + threads + processes
+
+        Example:
+
+        Async → network calls
+
+        Threads → lightweight tasks
+
+        Processes → heavy computation
+
+        🔹 One-Line Interview Answer
+
+        Multithreading uses shared memory and is ideal for I/O-bound tasks, while multiprocessing uses separate processes enabling true parallelism for CPU-bound tasks, avoiding Python’s GIL limitations.
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+28. Shallow copy vs Deep copy with realtime examples
+
+    import copy
+
+    lst = ["venkat","python",['Developer','ML'],90]
+    lst1 = copy.copy(lst)
+    lst1[0] ="venkat11"
+    lst1[2][0]='DATA SCIENCE'
+    print(lst1)
+    print(lst)
+
+    lst2 = ["venkateswarlu","python",['ML','DP'],100]
+    lst3 = copy.deepcopy(lst2)
+    lst3[0]='Venky'
+    lst3[2][0] ='Python Developer'
+    print(lst3)
+    print(lst2)
+
+    Shallow copy outer create new copy but inner lists shares same references
+    Shallow copy shares nested mutable objects but not the outer container
+    Inner lists -> shared -> changes reflect in both
+    Outer lists -> not shared -> changes isolated
+    immutable values(like int) -> replaced,not modified
+
+    In shallow copy ,modifying nested mutable objects affects both copies due to shared reference ,while reassigning outer-level elements only affects the copied object.
+    Shallow copy duplicates only the top-level container and shared nested objects,while deepcopy recursively duplicates all the objects
+    ,ensuring complete independence at the cost of performance
+
+    Shallow copy is effective but risky
+    Deep copy is safe but expensive
+    In large systems:
+        Prefer immutability
+        or Selective copying , not blind deepcopy
+
+    Realtime Scenario's
+        Banking:
+            Shallow copy : Two accounts linked to same wallet ->> Change balance reflects in both
+            Deep Copy : Separate accounts ->> no interference
+        E-commerce cart:
+            Shallow copy: Multiple users sharing same product list ->> changes affect others
+            Deepcopy: Each user gets independent cart.
+
+    When to Use What?
+        Shallow Copy:
+            When data is simple(no nested objects)
+            performance matters
+        Deepcopy:
+            when nested data exists
+            you need full isolation
+----------------------------------------------------------------------------------------
+29.closures in python
+    A closure is:
+        A function that remembers variables from its enclosing scope,even after that outer function has finished execution.
+
+        Key properties:
+            inner function uses variables from outer function
+            Outer function has already returned
+            State is preserved without using a class
+
+        example:
+            def outer(x):
+                def inner(y):
+                    return x+y
+                return inner
+            add_10 = outer(10)
+            print(add_10(20))
+-----------------------------------------------------------------------------------------------------
+30. Multiple decorators are possible to pass and which one execute first?
+    Decorators are applied from bottom to top, but executed from top to bottom when the function is called.
+    This sentence can feel confusing at first, but it becomes clear once you separate when decorators are applied vs when they run.
+
+    🔹 1. “Applied from bottom to top” (Decoration time)
+
+    When Python sees multiple decorators, it wraps the function starting from the closest (bottom) decorator and moves upward.
+
+    Example:
+    def deco1(func):
+        def wrapper():
+            print("deco1 before")
+            func()
+            print("deco1 after")
+        return wrapper
+
+    def deco2(func):
+        def wrapper():
+            print("deco2 before")
+            func()
+            print("deco2 after")
+        return wrapper
+
+    @deco1
+    @deco2
+    def say_hello():
+        print("Hello!")
+    What Python actually does:
+    say_hello = deco1(deco2(say_hello))
+
+👉 So:
+        deco2 is applied first (bottom)
+        Then deco1 wraps the result
+
+🔹 2. “Executed from top to bottom” (Call time)
+
+        When you call the function:
+
+            say_hello()
+
+        Execution happens like this:
+
+            deco1 before
+                deco2 before
+                    Hello!
+                deco2 after
+            deco1 after
+
+        👉 Order of execution:
+
+            deco1 starts first (top)
+            Then inside it, deco2 runs
+            Then original function runs
+            Then unwinds back
+        🔹 Visual Understanding
+
+            Think of decorators like layers of wrapping paper 🎁:
+
+                Applying decorators (wrapping):
+                Inner wrap first → outer wrap last
+                (bottom → top)
+                Executing (unwrapping):
+                Outer layer opens first → inner next
+                (top → bottom)
+                🔹 Simple Analogy
+
+        Imagine:
+
+            @shirt
+            @jacket
+            def person():
+                pass
+            Dressing (applying):
+            Put on jacket first, then shirt over it ❌ (not realistic but conceptually)
+            Removing (execution):
+            Remove shirt first, then jacket
+            🔹 Key Takeaway
+
+            Application (definition time):
+
+                bottom → top
+                func = deco1(deco2(func))
+
+            Execution (call time):
+
+                top → bottom → original → bottom → top
+
+            example:
+                def dec1(func):
+                    def wrapper(*args, **kwargs):
+                        print("dec1 - before")
+                        result = func(*args, **kwargs)
+                        print("dec1 - after")
+                        return result
+                    return wrapper
+
+                def dec2(func):
+                    def wrapper(*args, **kwargs):
+                        print("dec2 - before")
+                        result = func(*args, **kwargs)
+                        print("dec2 - after")
+                        return result
+                    return wrapper
+
+                @dec1
+                @dec2
+                def my_func():
+                    print("Inside function")
+
+                my_func()
+
+                my_func = dec1(dec2(my_func))
+
+                dec1 wraps dec2(my_func)
+                when called:
+                    dec1 runs first(outer layer)
+                    then dec2
+                    then original function
+
+                dec1 - before
+                dec2 - before
+                Inside function
+                dec2 - after
+                dec1 - after
+
+            Key takeaway:
+                closest decorator to the function runs first internally.
+                Top decorator runs first at call time.
+---------------------------------------------------------------------------------------------------------
+Give real interview coding problems on threading/multiprocessing
+
+Or explain GIL deeply with internal working (very high-level interview topic)
+
+    In python ,GIL stands for the Global Interpreter Lock
+    The GIL is mutex(lock) that ensures only one thread executes python bytecode at a time within a single process
+
+    Why exists:
+        python uses reference counting for garbage collection
+        without a lock ,multiple threads updating reference counts could cause race conditions
+        🔹 What the sentence means
+
+                “Without a lock, multiple threads updating reference counts could cause race conditions”
+
+                Let’s break it down:
+
+                    Reference count = a variable that tracks how many references point to an object
+                    Multiple threads = several threads running at the same time
+                    No lock = no protection (no synchronization)
+                    Race condition = unpredictable result due to timing of threads
+
+        👉 So the sentence means:
+                If multiple threads try to update the same variable (reference count) at the same time without synchronization, the final value can become incorrect.
+
+        🔹 Why does this happen?
+
+        Updating a variable like:
+
+            ref_count += 1
+
+            is not a single step. It actually happens like this:
+
+            Read current value
+            Add 1
+            Write back result
+
+        If two threads do this at the same time, they can interfere.
+
+        🔹 Example WITHOUT lock (race condition)
+        import threading
+        ref_count = 0
+
+        def increment():
+            global ref_count
+            for _ in range(100000):
+                ref_count += 1
+
+        threads = []
+        for _ in range(2):
+            t = threading.Thread(target=increment)
+            threads.append(t)
+            t.start()
+
+        for t in threads:
+            t.join()
+
+        print(ref_count)
+        Expected output:
+            200000
+        Actual output (often):
+            150000  (or some incorrect value)
+
+        👉 Why? Because both threads sometimes read the same value and overwrite each other.
+
+        🔹 Step-by-step race condition
+
+        Assume ref_count = 5
+
+        Thread 1	Thread 2
+        reads 5
+                     reads 5
+        adds → 6
+                     adds → 6
+        writes 6
+                     writes 6
+
+        👉 Final value = 6 instead of 7 ❌
+
+        🔹 Fix using a lock ✅
+        import threading
+
+        ref_count = 0
+        lock = threading.Lock()
+
+        def increment():
+            global ref_count
+            for _ in range(100000):
+                with lock:
+                    ref_count += 1
+
+        threads = []
+        for _ in range(2):
+            t = threading.Thread(target=increment)
+            threads.append(t)
+            t.start()
+
+        for t in threads:
+            t.join()
+
+        print(ref_count)
+        Output:
+        200000 ✅
+        🔹 Why lock works
+
+        A lock ensures:
+
+            Only one thread can update ref_count at a time
+            Other threads must wait
+
+        👉 This prevents overlapping operations → no race condition
+
+        🔹 Real-world analogy
+
+            Imagine two people updating a shared bank balance:
+
+                Both check balance = ₹100
+                Both add ₹50
+                Both write ₹150
+
+                👉 Final = ₹150 (wrong) instead of ₹200
+
+        A lock is like allowing only one person at the counter at a time.
+
+        🔹 Key takeaway
+                Updating shared data is not atomic
+                Without locks → race conditions
+                With locks → correct and predictable behavior
+                The GIL ensures thread safety without requiring fine-grained locks everywhere.
+
+        🔹 What is the GIL (Global Interpreter Lock)?
+
+        In CPython (the standard Python implementation), the GIL is a lock that ensures:
+
+            👉 Only ONE thread executes Python bytecode at a time
+
+            Even if you create multiple threads, they don’t truly run Python code in parallel (on multiple CPU cores).
+
+        🔹 Then why do race conditions still happen?
+
+        You might think:
+
+            “If only one thread runs at a time, how can race conditions occur?”
+
+                👉 Because the GIL:
+
+                does NOT make operations atomic
+                It only ensures one thread runs at a time, but threads can switch between steps
+                🔹 Example: ref_count += 1
+
+                Even with GIL, this line is multiple steps:
+
+                Load value
+                Add 1
+                Store value
+
+                The GIL can switch threads between these steps.
+
+                🔹 Step-by-step with GIL (still unsafe)
+
+                Assume ref_count = 5
+
+                Step	Thread 1	Thread 2
+                1	reads 5
+                2		            reads 5
+                3	adds → 6
+                4		            adds → 6
+                5	writes 6
+                6		            writes 6
+
+                👉 Final value = 6 (wrong)
+
+                ✔️ Even though only one thread runs at a time, switching happens mid-operation
+
+                🔹 So what does GIL actually protect?
+
+                The GIL mainly protects:
+
+                    Python’s internal memory structures
+                    Object management (like reference counting itself inside CPython)
+
+                👉 Without GIL, Python’s memory management would break.
+
+                🔹 Important distinction
+                Concept	What it does
+                GIL	Prevents multiple threads executing Python bytecode simultaneously
+                Lock (threading.Lock)	Protects your shared data from race conditions
+
+                👉 GIL ≠ replacement for locks
+
+                🔹 When do you still need locks?
+
+                You still need locks when:
+
+                Multiple threads modify shared variables
+                Operations involve multiple steps (like +=, list updates, etc.)
+                🔹 When GIL helps
+
+                GIL makes some operations appear safe, like:
+
+                a = 5
+
+                But not:
+
+                a += 1   ❌ not safe
+                🔹 Real-world analogy
+
+                Think of GIL like:
+
+                👉 A single-lane bridge
+
+                Only one car (thread) can pass at a time ✔️
+                But cars can stop midway and let another car go ❌
+
+                Locks are like:
+
+                👉 A traffic signal controlling the whole crossing
+
+                Ensures one car completes the full action safely
+                🔹 Key takeaway
+                GIL limits parallelism, but does NOT prevent race conditions
+                Shared data updates still need locks
+                Reference counting in CPython is safe internally because of GIL, but your own variables are not automatically safe
+    GIL= simpler interpreter design + safer memory management
+
+    How it works Internally
+        Threads run concurrently ,but only one holds the GIL at a time
+        The interpreter periodically releases the GIL(after a number of bytecode instructions or time slice)
+        Other threads then get a chance to run
+
+
+    Impact on Performance
+        Threads do not run in parallel on multiple cores.
+        can even be slower due to context switching
+
+
+    I/O-bound tasks
+        GIL is released during I/O operations(eg.,network,file read.write)
+
+        Threads can overlap waiting time
+        Good performance for:
+            APIs
+            Web scraping
+            DB calls
+
+        GIL is not a bug, it's a design trade-off
+
+        It favors:
+
+            Simplicity
+
+            Stability
+
+            Single-thread performance
+
+        It limits:
+
+            Multi-core CPU utilization in threaded programs
+
+        👉 Decision rule:
+
+            CPU-heavy → multiprocessing
+
+            I/O-heavy → multithreading or async
+---------------------------------------------------------------------------------
+OOPS Concept:
+    1.Encapsulation:
+        Hide internal data behind public methods
+        Bundling data(attributes) and methods(functions) together while restricting direct access to internal details.
+        Encapsulation is the process of binding data and methods together and restricting direct access to some of the objects components.
+
+        why it matters:
+            Protects data
+            Prevents accidental misuse
+            Enables control over modifications
+        without it:
+            Anyone can change variables->>bugs
+            No control over data validation
+            Hard to maintain large systems
+        with it:
+            you control how data is modified
+            you can add validation later without breaking code
+
+        example: A BankAccount class/TV remote- you press buttons without touching the internal circuits
+                    You can't directly change balance
+                    you must use deposit() or withdraw()
+        Keeps balance and pin private.They only way to interact with it is through deposit() and getBalance()
+
+        class BankAccount:
+            def __init__(self,balance):
+                self.__balance=balance
+
+            def deposit(self,amount):
+                if amount>0:
+                    self.__balance+=amount
+            def withdraw(self,amount):
+                if amount<= self.__balance:
+                    self.__balance-= amount
+            def get_balance(self):
+                return self.__balance
+
+        Real-world Mapping
+            ATM machine:
+                you don't access database directly
+                you go through:
+                    withdraw()
+                    deposit()
+
+    2.Abstraction:
+        Expose a simple interface,hide the complexity behind it.
+        Hiding implementation details and exposing only essential features.
+            Example:
+                An Email Service class gives you sendEmail(to,body).
+        Internally ,it handles SMTP connections ,authentication and retry logic.
+        The caller doesn't need to know any of that.
+        They just call one method and it works
+
+    3.Inheritance:
+        child class inherits properties and behavior from parent class.
+        why it matters:
+            Avoid code duplication
+            Represent real-world relationships
+            Enable extensibility
+       Types of Inheritance:
+        Single
+        Multiple
+        Multilevel
+        Hierarchical
+        Hybrid
+
+    4.Polymorphism:
+        polymorphism allows different objects to respond to the same method in different ways.
+        why it exists:
+            Makes code flexible
+            Reduces conditionals
+            enables scalability
+
+Difference between Abstraction and Encapsulation?
+            | Feature        | Encapsulation               | Abstraction                 |
+        | -------------- | --------------------------- | --------------------------- |
+        | Goal           | Protect data                | Hide complexity             |
+        | Focus          | *How data is accessed*      | *What to show to user*      |
+        | Implementation | Private/protected variables | Abstract classes/interfaces |
+        | Level          | Low-level design            | High-level design           |
+
+from abc import ABC,abstractmethod
+class Car(ABC): #abstraction
+    @abstractmethod
+    def drive(self):
+        pass
+class BMW(Car):
+    def __init__(self):
+        self.__speed =0  #Encapsulation
+        print("Driving at",self.__speed)
+
+What is Abstract Class?
+    An abstract is a class that:
+        Cannot be instantiated ->> you cannot create an object directly from an abstract class.
+        Contains one or more abstract methods ->> An abstract method is: Declared but not implemented
+        Abstract class = incomplete blueprint (method is declared but has no logic)
+    It acts like a blueprint/template
+
+Why is this useful?
+    Parent class defines WHAT should be done
+    Child class defines HOW it should be done
+
+Analogy:
+    Blueprint of a house:
+        Says "there must be a kitchen"
+        Doesn't define:
+            size
+            color
+            layout
+        Builder(child class) decides that
+
+
+from abe import ABC ,abstractmethod
+
+class Animal(ABC):
+    @abstractmethod
+    def sound(self):
+        pass
+
+real world analogy:
+    Think of an abstract class like:
+        A join role description(e.g.,"employee must work")
+        But no actual implementation
+    You can't hire "generic employee" without defining their role.
+
+
+3.Can we create object of abstract class?
+    No
+    a= Animal() #error
+    Because:
+        It has incomplete methods
+        Python enforces implementation in child classes
+
+4.Why Abstraction is Needed?
+    Reasons:
+        Reduce complexity
+        Improve readability
+        Enforce structure
+        Hide unnecessary details
+    Real world example:
+        ATM:
+            you press buttons
+            you don't see backend banking logic
+5. What is Duck typing?
+    if it looks like a duck and behaves like a duck,it is a duck.
+    python checks behavior,not type
+
+Does python support method overloading?
+    No (not traditionally)
+    But achieved using:
+        Default arguments
+        *args, **kwargs
+
+6.Real-world example of Polymorphism
+    class Payment:
+        def pay(self):
+            pass
+    class UPI(Payment):
+        def pay(self):
+            print("payments")
+    class Card(Payment):
+        def pay(self):
+            print("card payment")
+
+7.Difference between _var and __var
+    _var ->> Protected(convention only)
+    __var ->> Private(name mangling)
+
+8.Can private variables be accessed in python?
+    Yes(indirectly)
+  Using name mangling
+  example:
+    obj._className__var
+  so python privacy is:
+    Not strict
+    Based on developer discipline
+
+9.Why is Encapsulation important?
+    Reasons:
+        protects data
+        prevents misuse
+        Improves maintainability
+        allows validation
+
+10.How is Encapsulation different from Abstraction?
+    Encapsulation controls access to data ,while abstraction hides implementation details.
+
+Python enforces implementation in child classes
+    python will throw an error if child class doesn't implement abstract method.
+
+class Cat(Animal):
+    pass
+
+c = Cat()  # ❌ ERROR
+
+TypeError: Can't instantiate abstract class Cat with abstract method sound
+
+class Cat(Animal):
+    def sound(self):
+        return "Meow"
+
+c = Cat()  # ✅ Works
+
+If a class inherits from an abstract class, it MUST implement all abstract methods.
+
+Abstract Class:
+    An abstract class is a class that cannot be instantiated and is used as a blueprint. It contains abstract methods (methods without implementation) that must be implemented by child classes.
+
+Abstract Method:
+    A method declared without implementation that forces child classes to define its behavior.
+
+Why This Concept Exists(Important Insight)?
+    without abstraction:
+        No standard structure
+        Developers implement things differently
+        code becomes inconsistent
+    with abstraction:
+        Forces uniform design
+        improves scalability
+
+Can abstract class have constructor? (✔️ Yes)
+Can abstract class have normal methods? (✔️ Yes)
+Can we have object without class in Python? (✔️ Everything is object)
+Can abstract class have no abstract methods? (✔️ Yes)
+Can we access private variables outside class? (✔️ Yes via name mangling)
+Does Python support multiple inheritance? (✔️ Yes)
+-----------------------------------------------------
+Why python doesn't have strict private variables?
+
+    Python doesn't enforce strict private variables because it follows the philosophy
+    We are all consenting adults
+    meaning:
+        python trusts developers to use variables responsibly
+        it prefers flexibility over restriction
+   class A:
+    def __init__(self):
+        self.__x = 10
+    #Python changes (name mangling):
+    obj =A()# _A__x
+    print(obj._A__x)
+
+--------------------------------------------------------
+Can we override static method? Yes
+    class A:
+        @staticmethod
+        def show():
+            print("A")
+    class B(A):
+        @staticmethod
+        def show():
+            print("B")
+    B.show() # B
+----------------------------------------------------------
+11.Does python support method overloading? ->> not directly
+    Examples:
+        def add(a, b=0, c=0):
+            return a + b + c
+
+        def add(*args):
+            return sum(args)
+----------------------------------------------------------
+12.Use of super()
+    call parent class method
+
+    class A:
+        def __init__(self):
+            print("A")
+    class B(A):
+        def __init__(self):
+            super().__init__()
+            print("B")
+
+
+13.If two parent classes have same method?
+    class A:
+    def show(self): print("A")
+
+    class B:
+        def show(self): print("B")
+
+    class C(A, B):
+        pass
+
+    c = C()
+    c.show()
+
+    Python doesn't support overloading
+    python avoids traditional overloading to keep syntax simple  uses dynamic typing instead
+    Why python chose this design?
+        Flexibility ->> Developers can still access data if needed
+        Simplicity ->> No complex access rules like Java(private,public)
+        Trust-Based design ->> python assumes you won't misuse internal data
+
+-------------------------------------------------------
+14.Can we create object of abstract class? why?
+    No ,we cannot create an object of an abstract class.
