@@ -1,3 +1,50 @@
+Docker commands:
+    docker pull <image_name>
+    docker images
+    docker run <image_name>
+    docker run -it <image-name> ->>interactive mode
+    docker stop <container_name or container_id>
+    docker start <container_name or container_id>
+    docker ps -a ->> live + dead containers
+    docker ps ->> live containers
+    docker rmi image-name ->> remove Docker image
+    docker rm container_name ->> remove container
+    docker pull image-name:version ->> image versions
+    docker run -d image-name ->> run images in detached mode
+    docker run --name container_name -d image-name
+
+    Troubleshoot Commands:
+
+     docker logs container_id
+     docker exec -it container_id/bin/bash
+     docker exec -it container_id/bin/sh
+
+     Networking commands:
+
+     docker network ls
+     docker network create <network-name>
+     docker network rm <network-name>
+
+     Docker Compose:
+        docker compose -f fileName.yaml up -d
+        docker compose -f fileName.yaml down
+
+     Docker Volumes
+        docker volume ls
+        docker volume create <volume-name>
+        docker volume rm <volume-name>
+        docker volume prune
+------------------------------------------------------------
+Docker image Layers:
+    when we create a new container,new writable layer(called container layer) is added on top of underlying layers.
+-------------------------------------------------------------
+What is if we call docker run image-name
+    To generate this message ,Docker took the following steps:
+        1.The Docker client contacted the Docker daemon
+        2.The DOcker daemon pulled the image from the Docker Hub.
+        3.The Docker that produces the output to the Docker client,which sent it to your terminal.
+
+-------------------------------------------------------------
 Content Delivery Network(CDN):
     Faster Global Reach
     Optimizes content delivery by routing traffic to the nearest server.
@@ -290,17 +337,17 @@ Event-Driven Architecture:
       A namespace is a logical container that prevents name or resource conflicts by isolating them into separate scopes.
 -------------------------------------------------------------------------------------------------------------------------
 Docker file components:
-    FROM : Sets the base image for the Docker image
+    FROM <image>: This specifies the base image that the build will extend - Sets the base image for the Docker image
     LABEL: Adds metadata to the image ->> LABEL maintainer="venkat@gmail.com"
-    RUN: Executes the commands during the build process ->> RUN apt update && apt install
-    CMD: Specifies the default command to run when container starts ->> CMD ["python","app.py"]
+    RUN <command>: This instruction tells the builder to run the specified command - Executes the commands during the build process ->> RUN apt update && apt install
+    CMD ["<command>","<arg1>"]:This instruction sets the default command a container using this image will run - Specifies the default command to run when container starts ->> CMD ["python","app.py"]
     ENTRYPOINT: Always runs as the main command of the container ->> ENTRYPOINT["python"]
-    WORKDIR: Sets the working directory inside the container ->> WORKDIR/app
-    COPY: Copies the files from local machine to container ->> COPY. /app
+    WORKDIR <path>: This instruction specifies the "working directory" or path in the image where files will be copied and command will be executed - Sets the working directory inside the container ->> WORKDIR/app
+    COPY <host-path> <image-path>: This instruction tells the builder to copy files from the host and put them into the container image-Copies the files from local machine to container ->> COPY. /app
     ADD: Similar to COPY command but also supports URL download and tar extraction. ->> ADD app.tar.gz /app
-    ENV: Sets environment variables
-    EXPOSE: Documents the port the container listens on ->> EXPOSE 5000
-    USER: Sets the user for running commands ->> USER root
+    ENV <name> <value>:This instruction sets an environment variable that a running container will use Sets environment variables
+    EXPOSE <port-number>: This instruction sets configuration on the image that indicates a port the image would like to expose - Documents the port the container listens on ->> EXPOSE 5000
+    USER <user-or-uid>: This instruction sets the default user for all subsequent instructions- Sets the user for running commands ->> USER root
     VOLUME: Creates a mount point or attaches storage ->> VOLUME["/data"]
 --------------------------------------------------------------------------------------------------------------------------
 What is Docker?
@@ -381,7 +428,7 @@ docker login: Authenticate with Docker Hub.
 docker push my-image: Upload a custom-built image to Docker Hub.
 docker search ubuntu: Search for official and community images.
 docker pull ubuntu: Download an Ubuntu image from Docker Hub.
----------------------------------------------------------------------------------------
+----------------------------------------------------------------------------------------------
 What is Docker Compose?
         Docker Compose is a tool that simplifies the management of multi-container applications.
         Instead of running multiple docker run commands, you can define an entire application stack using a docker-compose.yml file and deploy it with a single command.
@@ -392,17 +439,11 @@ Commands: docker-compose up -d
             The previous command starts both the web and database containers in detached mode (-d).
           docker-compose down
             This stops and removes all containers while preserving volumes and network settings.
+-----------------------------------------------------------------------------------------------
+Docker Volumes
+    Volumes are persistent data stores for containers.
 
-
-
-
-
-
-
-
-
-
-
+-----------------------------------------------------------------------------------------------
 
 
 

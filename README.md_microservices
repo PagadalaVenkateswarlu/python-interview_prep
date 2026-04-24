@@ -1,3 +1,20 @@
+Microservices:
+    1.Microservices a variant of service-based-architecture(SOA),arranges an application as a collection of loosely coupled isolated services.
+    2.Microservices is a unique method of software development that focuses on developing isolated individual services combines as a single application.
+    3.Microservices help to build an application as combination of multiple small services,each running in its own environment and are independently deployable.
+    4.These services can be written in different programming languages and also have its own storage and databases.
+    5.Changes done to one service will not have any downtime on other services,which also enables developers to release there changes without any dependency on other services.
+Microservices Advantages:
+    1.It gives developers freedom to develop and deploy services independently
+    2.These independent services can be developed using different programming languages.
+    3.When new changes are required,it only needs to be done to specific services only instead of bring down whole application.
+    4.It provides better fault tolerance,where one service going on does not have much impact on whole application.
+Microservices Disadvantages:
+    1.Due to multiple services,it becomes sometimes complicated to perform end to end testing.
+    2.Developers need to put additional efforts to establish connectivity between multiple services.
+    3.With multiple services utilization of resources would also increase.
+    4.Debugging errors for services can be harder since each service has its own service logs.
+------------------------------------------------------------------------
 1.What is API Gateway in Microservices?
     API Gateway acts as an entry point for all requests,handling routing,load balancing,security,rate limiting,and logging
     examples:
