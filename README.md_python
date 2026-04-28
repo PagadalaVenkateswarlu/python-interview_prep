@@ -1557,3 +1557,200 @@ Can we override static method? Yes
 -------------------------------------------------------
 14.Can we create object of abstract class? why?
     No ,we cannot create an object of an abstract class.
+
+---------------------------------------------------------
+🔹 What is frozenset?
+
+    A frozenset is an immutable version of a set.
+
+    👉 Normal set = mutable (can change)
+    👉 frozenset = cannot be changed after creation
+
+    s = frozenset([1, 2, 3])
+
+    print(s)  # frozenset({1, 2, 3})
+
+    🔹 Key Property (Important)
+
+    ❌ You cannot modify it:
+
+        s.add(4)   # ❌ Error
+        s.remove(1) # ❌ Error
+
+    👉 Because it is immutable
+
+🔹 Why Do We Need frozenset?
+        1. ✅ Can be used as Dictionary Keys
+            d = {}
+
+            key = frozenset([1, 2, 3])
+            d[key] = "value"
+
+            print(d)
+
+        👉 Normal set ❌ cannot be a key (because it's mutable)
+        👉 frozenset ✅ works (because it's immutable)
+
+        2. ✅ Can be stored inside another set
+            s1 = frozenset([1, 2])
+            s2 = frozenset([3, 4])
+
+            main_set = {s1, s2}
+            print(main_set)
+
+        👉 Set inside a set → only possible with frozenset
+
+        3. ✅ Thread-safe / safer data
+
+            Since it cannot change:
+                No accidental modification
+                Good for constants / fixed collections
+
+        🔹 Operations Supported
+
+                Even though it's immutable, you can still do:
+
+                    a = frozenset([1, 2, 3])
+                    b = frozenset([3, 4, 5])
+
+                    print(a | b)  # Union
+                    print(a & b)  # Intersection
+                    print(a - b)  # Difference
+
+        🔹 Real-World Use Case
+
+            👉 Example: caching unique combinations
+
+            visited = set()
+
+            combo = frozenset(["A", "B"])
+            visited.add(combo)
+
+            Used in:
+
+                Graph problems
+                Caching
+                Deduplication logic
+
+        "frozenset is an immutable version of a set in Python. It cannot be modified after creation and is hashable, so it can be used as dictionary keys or elements inside other sets."
+-------------------------------------------------------------------------------------------------
+Why do we need fixtures in pytest?
+    Fixtures in pytest are used to set up and provide reusable test data or resources to your tests.
+
+    🔹 What is a Fixture?
+
+            A fixture is a function that:
+
+                Prepares data / environment before a test runs
+                Optionally cleans up after the test
+                Can be reused across multiple tests
+
+            👉 Think: “test setup + dependency injection”
+
+            import pytest
+
+            @pytest.fixture
+            def sample_data():
+                return {"name": "Venkat", "age": 25}
+
+            def test_user(sample_data):
+                assert sample_data["name"] == "Venkat"
+            👉 sample_data is automatically passed into the test
+
+            🔹 Why Use Fixtures?
+
+                    Without fixtures ❌:
+
+                        def test_1():
+                            data = {"name": "Venkat"}
+                            ...
+
+                        def test_2():
+                            data = {"name": "Venkat"}
+                            ...
+
+                    With fixtures ✅:
+
+                        @pytest.fixture
+                        def data():
+                            return {"name": "Venkat"}
+
+                    👉 Avoid duplication
+
+    🔹 Real-World Use Cases
+            1. 🗄️ Database Setup
+
+                @pytest.fixture
+                def db_connection():
+                    conn = connect_to_db()
+                    yield conn
+                    conn.close()
+
+            👉 Automatically:
+
+                    Opens DB before test
+                    Closes DB after test
+
+            2. 🌐 API Client (FastAPI / Django)
+
+                @pytest.fixture
+                def client():
+                    from fastapi.testclient import TestClient
+                    from app import app
+                    return TestClient(app)
+
+            👉 Used to test APIs easily
+
+            3. 🔐 Authentication Setup
+            @pytest.fixture
+            def auth_user():
+                return {"username": "admin", "token": "abc123"}
+            🔹 yield in Fixtures (Important)
+            @pytest.fixture
+            def resource():
+                print("Setup")
+                yield "data"
+                print("Teardown")
+
+            👉 Execution flow:
+
+                Setup runs
+                Test runs
+                Teardown runs
+                🔹 Fixture Scope
+
+        Control how often fixture runs:
+
+            @pytest.fixture(scope="function")  # default
+            @pytest.fixture(scope="module")
+            @pytest.fixture(scope="session")
+        Scope	                 Runs When
+        function	             Every test
+        module	                 Once per file
+        session	                 Once for entire run
+        🔹 Auto-use Fixtures
+                @pytest.fixture(autouse=True)
+                def setup():
+                    print("Runs before every test")
+
+                👉 No need to pass explicitly
+
+        🔹 Parametrized Fixture
+                @pytest.fixture(params=[1, 2, 3])
+                def number(request):
+                    return request.param
+
+                def test_numbers(number):
+                    assert number > 0
+
+                👉 Runs test 3 times
+
+        🔹 Key Benefits
+                Reusability
+                Cleaner tests
+                Separation of setup logic
+                Easy maintenance
+                Built-in dependency injection
+                🔹 Interview Answer (Strong)
+
+        "Fixtures in pytest are used to manage test setup and teardown in a reusable way. They allow us to provide dependencies like database connections, API clients, or test data to multiple tests, improving code reusability and maintainability."

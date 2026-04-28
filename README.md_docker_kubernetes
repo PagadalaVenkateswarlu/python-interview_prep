@@ -444,6 +444,116 @@ Docker Volumes
     Volumes are persistent data stores for containers.
 
 -----------------------------------------------------------------------------------------------
+Use of -it in Docker?
+    The -it flag in Docker is actually two flags combined:
+        -it = -i + -t
+    🔹 1. -i → Interactive mode
+            Keeps STDIN (input) open
+            Allows you to type input into the container
 
+        👉 Without -i, you can’t send input (keyboard won’t work)
 
+    🔹 2. -t → Terminal (TTY)
+        Allocates a pseudo-terminal
+        Gives you a nice shell interface (like a real Linux terminal)
 
+        👉 Without -t, output looks messy and no proper prompt
+
+    🔹 Together: -it
+            Enables interactive terminal session
+            Lets you run and interact with shell inside container
+
+    Example:
+        docker run -it python
+
+        Opens Python interactive shell:
+            >>>
+
+        🔹 When to Use -it
+
+    Use it when:
+
+        You want to debug inside container
+        You need a shell (bash/sh)
+        Running interactive apps (Python REPL, CLI tools)
+        🔹 When NOT to Use
+
+                Don’t use -it when:
+
+                    Running background services (like APIs, servers)
+
+        Example:
+
+            docker run -d nginx
+
+        🔹 Interview Answer (Short)
+
+            "-it in Docker combines interactive input (-i) and a terminal (-t), allowing users to run and interact with a container shell in real time."
+----------------------------------------------------------------------------------------------
+Explain the difference between docker run and docker exec -it
+
+    The difference is simpler than it first looks—one creates a container, the other enters an existing one.
+
+    🔹 1. docker run
+
+    👉 Creates + starts a new container
+        docker run -it ubuntu bash
+
+        What happens:
+            Pulls image (if not present)
+            Creates a new container
+            Starts it
+            Runs the command (bash)
+            Attaches terminal (because of -it)
+
+            👉 Every time you run this, you get a fresh container
+
+    🔹 2. docker exec -it
+
+            👉 Runs a command inside an already running container
+                docker exec -it <container_id> bash
+
+                What happens:
+                    Uses an existing running container
+                    Opens a new interactive terminal session inside it
+                    Does NOT create a new container
+        🔹 Key Difference (Core Idea)
+        Feature	            docker run	                                  docker exec -it
+        Container	        Creates new	                                  Uses existing
+        State	            Fresh	                                      Keeps existing state
+        Use case	        Start app / container	                      Debug / inspect running container
+        Needs container?	No	                                          Yes (must be running)
+
+🔹 Real-World Example
+        Step 1: Start a container
+        docker run -d --name myapp nginx
+
+        👉 Now container is running in background
+
+        Step 2: Enter it
+        docker exec -it myapp bash
+
+        👉 You’re now inside the same running container
+
+    🔹 Important Insight
+
+    ❌ Wrong thinking:
+
+            "exec is same as run"
+
+    ✅ Correct thinking:
+
+        run = launch a new house
+        exec = enter an already running house
+🔹 When to Use What
+    Use docker run:
+        Starting a new service
+        Running a one-time job
+        Creating containers
+    Use docker exec -it:
+        Debugging issues
+        Checking logs/files
+        Running commands inside live container
+🔹 Interview Answer (1-liner)
+
+"docker run creates and starts a new container, while docker exec -it runs commands inside an already running container interactively."

@@ -1,4 +1,4 @@
-# Reverse a number
+# ----------------------- Reverse a number ------------------
 # def reverse_number(num):
 #     reverse = 0
 #     while num >0:
@@ -7,19 +7,29 @@
 #         num//=10
 #     return reverse
 # #print(reverse_number(1234567))
-# ---------------------------------------------------
-#fibonacci series
-
-# 👉 Question: Print first n Fibonacci numbers
-# def fibanocci_num(n):
-#     if n<=1:
-#         return n
-#     a,b = 0,1
-#     for i in range(2,n):
-#         a,b=b,a+b
-#         print(a)
-# fibanocci_num(10)
-# ----------------------------
+# ------------------- Method 2------------------------------
+# s = 12345
+# print(int(str(s)[::-1]))
+# ---------------------fibanocci series --------------------
+# 👉Question: Print first n Fibonacci numbers
+# def fibanocci(n):
+#     fib = [0, 1]
+#
+#     for i in range(n):
+#         fib.append(fib[-1] + fib[-2])
+#     return fib
+# # print(fibnocci(10))
+# -----------------------------------------------------------
+# def fibanocci(n):
+#     a, b = 0, 1
+#     fib = []
+#     for i in range(n):
+#         a, b = b, a + b
+#         fib.append(a)
+#         fib.append(b)
+#     return set(fib)
+# print(fibanocci(10))
+# -----------------------------------------------------------
 # 🔹 2. Fibonacci using recursion
 #
 # 👉 Question: Find nth Fibonacci number using recursion
@@ -30,6 +40,7 @@
 #     return fib(n-1) + fib(n-2)
 #
 # print(fib(6))
+# -----------------------------------------------------------
 # 🔹 3. Fibonacci using dynamic programming (optimized)
 #
 # 👉 Question: Avoid repeated calculations
@@ -50,26 +61,26 @@
 #     return dp
 #
 # print(fib(10))
-# --------------------------------------------------------------------------------------
-from fastapi import FastAPI
-from collections import Counter
-app = FastAPI()
-
-@app.post("/")
-def find_repeating_words(payload: str):
-    # Convert string into list of words
-    words = payload.split()
-
-    # Count occurrences
-    word_count = Counter(words)
-
-    # Filter repeating words (count > 1)
-    repeating_words = {word: count for word, count in word_count.items() if count > 1}
-
-    return {
-        "input": payload,
-        "repeating_words": repeating_words
-    }
+# --------------------------Find repeated word in text------------------------------------------------------------
+# from fastapi import FastAPI
+# from collections import Counter
+# app = FastAPI()
+#
+# @app.post("/")
+# def find_repeating_words(payload: str):
+#     # Convert string into list of words
+#     words = payload.split()
+#
+#     # Count occurrences
+#     word_count = Counter(words)
+#
+#     # Filter repeating words (count > 1)
+#     repeating_words = {word: count for word, count in word_count.items() if count > 1}
+#
+#     return {
+#         "input": payload,
+#         "repeating_words": repeating_words
+#     }
 # ---------------------------------------------------------------------
 s = "aabcccccaaa"
 
@@ -85,6 +96,14 @@ for i in range(1, len(s)):
 
 # add last character
 result += s[-1] + str(count)
+
+s1 = "a2b3c4d5"
+result = ""
+for i in range(0,len(s1),2):
+    char = s1[i]
+    count = int(s1[i+1])
+    result += char *count
+# print(result)
 # -------------------------------------------------------------------------
 # Adding two lists
 def add_list(l1,l2):
@@ -3164,4 +3183,40 @@ def calling(n):
     if n<=1:
         return n
     return calling(n-1) + calling(n-2)
-print(calling(10))
+# print(calling(10))
+
+# ---------------------------------------Reversing string----------------------------------------
+
+def reverse_string(s):
+    result = ""
+    for char in s:
+        result = char + result
+    return result
+
+# print(reverse_string("hello"))
+
+#------------------------------- Lonest substring-------------------------------------------------
+def longest_substring(s):
+    char_set = set()
+    left = 0
+    max_length = 0
+
+    for right in range(len(s)):
+        # If duplicate, shrink window
+        while s[right] in char_set:
+            char_set.remove(s[left])
+            left += 1
+
+        # Add current character
+        char_set.add(s[right])
+
+        # Update max length
+        max_length = max(max_length, right - left + 1)
+
+    return max_length
+
+
+# Test cases
+print(longest_substring("zxyzxyz"))     # 3 -> "xyz"
+print(longest_substring("zxybzxyz"))    # 4 -> "bzxy"
+print(longest_substring("zxybzxyzac"))  # 5 -> "xyzac"
