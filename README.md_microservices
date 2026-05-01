@@ -1014,3 +1014,63 @@ What is the role of Kubernetes in Microservices?
         Reliability (self-healing)
         Service communication
         Zero-downtime deployments
+---------------------------------------------------------------------------------------
+When to Use Microservices
+    1.Large & Complex Applications
+    2.Multiple Teams Working in parallel
+        a.Team A -> User service
+          Team B -> Order service
+    3.Need for independent scaling
+    4.High Availability Systems
+    5.Different Technology Requirements
+
+When to Avoid Microservices
+    1.Small Applications
+    2.Small Team
+    3.No DevOps/Infrastructure Readiness
+
+Microservices communication is how independent services interact to complete a business workflow.
+
+Synchronous Communication:
+    In synchronous communication one service call another service and waits for a response.
+
+    Characteristics:
+        Blocking
+        Request-response
+        Sequential flow
+    Advantages:
+        Simple & Easy to Understand
+        Immediate Response
+        Easier Debugging
+        Strong Consistency
+    Disadvantages:
+        Tight Coupling
+        High Latency
+        Cascading Failures
+
+Asynchronous Communication:
+    Characteristics:
+        Event-driven communication
+        Non-blocking (does not wait for response)
+        Loose coupling between services
+        Parallel execution of services
+        Eventual consistency (not immediate)
+        Independent processing by each service
+    Advantages:
+        High scalability(services can process events independently)
+        Loose coupling(services don't depend directly on each other)
+        Better fault tolerance(failure in one service doesn't break system)
+        Faster user response(no waiting for full workflow)
+        Supports Event-driven architecture
+        Enables parallel processing
+    Disadvantages:
+        Harder to debug and trace flow
+        Eventual consistency (data not immediately consistent)
+        More complex architecture (requires messaging systems)
+        Handling duplicate events and ordering issues
+        Increased operational overhead (queues,brokers,monitoring)
+
+    Examples:
+        Kafka
+        RabbitMQ
+        
