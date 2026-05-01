@@ -2236,7 +2236,7 @@ What happens to constructors in inheritance?
                     class Shape:
                         def area(self):
                             print("Calculate area")
-
+ 
                     class Rectangle(Shape):
                         def area(self):   # overriding
                             print("Rectangle area")
@@ -2244,7 +2244,7 @@ What happens to constructors in inheritance?
                     class Calculator:
                         def add(self, a, b=0):   # overloading style
                             return a + b
-----------------------------------------------------------------------
+----------------------------------------------------------------------------------------------------------
 
 How does python handle memory management and what role does garbage collection play?
 
@@ -2255,4 +2255,5 @@ How does python handle memory management and what role does garbage collection p
     Garbage collection in python uses reference counting as well as a cyclic garbage collector to detect and collect unused data.
     When an object has no more references it becomes eligible for garbage collection.
     The GC module in python allows you to interact with garbage collector directly providing functions to enable or disable garbage collection, as well as to perform manual collection.
+---------------------------------------------------------------------------------------------------------
 

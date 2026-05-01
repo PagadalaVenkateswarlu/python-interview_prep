@@ -1,3 +1,101 @@
+Iterators:
+     An iterator is an object that lets you access elements one at a time instead of loading everything at once.
+     It follows two methods internally:
+            __iter__()
+            __next__()
+     Simple Analogy
+
+        Imagine reading a huge book page by page.
+
+        You do NOT copy the entire book into memory
+        You only read the current page
+        Then move to the next page
+
+    That is exactly how iterators work.
+
+    How Iterator Works Internally:
+            numbers = [10, 20, 30]
+
+            it = iter(numbers)
+
+            print(next(it))   # 10
+            print(next(it))   # 20
+            print(next(it))   # 30
+
+    What happens internally
+            it = numbers.__iter__()
+            it.__next__()
+    Important Point
+
+        A normal list stores all values in memory.
+
+        An iterator gives values on demand.
+
+        This is called:
+
+            Lazy Evaluation
+
+        Meaning:
+
+            "Produce value only when needed."
+    Why Iterators Are Important in Real World
+
+    Without iterators:
+
+        Huge memory usage
+        Slow processing
+        Cannot handle infinite streams
+
+    With iterators:
+
+        Memory efficient
+        Faster streaming
+        Handles large datasets
+        Works well with files, APIs, Kafka streams, logs
+--------------------------------------------------------------------------
+Generators:
+
+    A generator is a special way to create iterators easily.
+
+    Instead of:
+        creating class
+        implementing __iter__
+        implementing __next__
+    Generators gives a simpler way of syntax using yield keyword
+
+    What yield Does
+
+    yield:
+        pauses function
+        saves state
+        resumes later
+
+    When To Use Iterator vs Generator
+        Use Iterator When
+                You need:
+                    complex state management
+                    custom object behavior
+                    reusable iteration class
+                Examples:
+                    database cursor
+                    Kafka consumer
+                    custom framework internals
+        Use Generator When
+
+                You need:
+                    streaming data
+                    memory optimization
+                    pipelines
+                    simple lazy processing
+                    Examples:
+                        API streaming
+                        reading files
+                        ETL jobs
+                        ML batches
+
+    Very Important Interview Point
+            Every Generator Is an Iterator But Not Every Iterator Is a Generator
+            Because:generator automatically implements iterator protocol
 Lazy loading
     Lazy loading in Python means deferring the creation or loading of an object/resource until it is actually needed. Instead of doing work upfront, you delay it to improve performance
     reduce memory usage.
@@ -92,27 +190,27 @@ Lazy loading
                     self._db = Database()
                 return self._db.connect()
         📊 When to Use vs Avoid
-        ✅ Use Lazy Loading When:
+                ✅ Use Lazy Loading When:
 
-        Expensive operations (I/O, DB, large ML models)
+                        Expensive operations (I/O, DB, large ML models)
 
-        Rarely accessed data
+                        Rarely accessed data
 
-        Improving API responsiveness
+                        Improving API responsiveness
 
         ❌ Avoid When:
 
-        Data is always needed anyway (adds complexity)
+                Data is always needed anyway (adds complexity)
 
-        Debugging complexity matters
+                Debugging complexity matters
 
-        Real-time systems needing predictable latency
+                Real-time systems needing predictable latency
 
         ⚠️ Trade-offs
-        Benefit	Cost
-        Faster startup	First access slower
-        Lower memory usage	More complex code
-        Avoid unnecessary work	Harder debugging
+            Benefit	Cost
+            Faster startup	First access slower
+            Lower memory usage	More complex code
+            Avoid unnecessary work	Harder debugging
         🎯 Tech Lead Summary
 
         Lazy loading is a performance optimization pattern
@@ -183,7 +281,7 @@ Lazy loading
         We can access list using index cause it uses contiguous block of memory (CPU cache friendly)
         costly insert/delete in middle
         Dynamic resizing
------------------------------------------------------------------
+-------------------------------------------------------------------------------------------------------
 "If __name__=="__main__":
     Every python file has a special variable called __name__.
     When the file run directly python sets __name==__main__
@@ -380,7 +478,27 @@ Lazy loading
                 # Calling the class method
                 print(MyClass.class_method(3))  # Output: 3
                 print(MyClass.class_method(7))  # Output: 10
+        Class Variables:
+            Shared among all objects
 
+            class Employee:
+                company = "Google"
+
+                def __init__(self,name):
+                    self.name = name
+            e1 = Employee("Venkat")
+            e2 = Employee("Venkey")
+            print(e1.company)
+            print(e2.company)
+        Real-world example:
+            Every employee in same company shares:
+                company name
+                office location
+            But each employee has unique:
+                name
+                id
+
+----------------------------------------------------------------------------------------------
         Static Method:
                 1.In Static method we no need to pass cls or self as a first parameter
                 2.We can pass @staticmethod as a decorator
@@ -620,6 +738,40 @@ Lazy loading
                     Harder debugging and testing
 
                     Prefer composition over inheritance in complex systems
+------------------------------------------------------------------------------------------
+Composition:
+    One class contains another class object
+
+    class Engine:
+        def start(self):
+            print("Engine start")
+    class Car:
+        def __init__(self):
+            self.engine = Engine()
+
+    cl = Car()
+    cl.engine.start()
+------------------------------------------------------------------------------------------
+Singleton Pattern:
+    Ensures only one object is created.
+
+    class Singleton:
+        _instance = None
+
+        def __new__(cls):
+            if cls._instance is None:
+                cls._instance = super().__new__(cls)
+            return cls._instance
+
+    a = Singleton()
+    b = Singleton()
+    print(a is b)
+Singleton restricts object creation to one instance.
+Used in:
+    DB connection manager
+    config manager
+    logger
+
 -------------------------------------------------------------------------------------------
 
 26.  what is the  difference between Function and class based component.
@@ -1754,3 +1906,64 @@ Why do we need fixtures in pytest?
                 🔹 Interview Answer (Strong)
 
         "Fixtures in pytest are used to manage test setup and teardown in a reusable way. They allow us to provide dependencies like database connections, API clients, or test data to multiple tests, improving code reusability and maintainability."
+-----------------------------------------------------------------------------------------
+Coding Challenges:
+    1. Create an Employee class that tracks employee count
+
+        class Employee:
+            count = 0
+            def __init__(self,name):
+                self.name = name
+                Employee.count+=1
+        e1= Employee("Venkat")
+        print(e1.count)
+
+-----------------------------------------------------------------------------------------
+Difference between function and method?
+    A function and a method are both reusable blocks of code in Python.
+
+    The main difference is:
+
+        A function is independent.
+        A method belongs to an object or class.
+
+    1. Function in Python
+
+            A function is a standalone block of code that performs a task.
+
+            Example
+            def add(a, b):
+                return a + b
+
+            result = add(10, 20)
+            print(result)
+
+    How it works
+
+    Here:
+        add(10, 20)
+        add is a function
+        It exists independently
+        It is not attached to any object
+
+        print() → function
+        len() → function
+        sum() → function
+
+    They are not tied to a specific object.
+
+2. Method in Python
+
+    A method is a function that belongs to an object or class.
+
+    It is called using:
+
+        object.method()
+        Example
+        name = "python"
+
+        result = name.upper()
+
+        print(result)
+
+A function is an independent reusable block of code, while a method is a function associated with an object or class and usually operates on that object's data using self.

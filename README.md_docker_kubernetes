@@ -557,3 +557,78 @@ Explain the difference between docker run and docker exec -it
 🔹 Interview Answer (1-liner)
 
 "docker run creates and starts a new container, while docker exec -it runs commands inside an already running container interactively."
+
+-------------------------------------------------------------------------------------------------------------
+How does Kubernetes architecture work (control plane + worker nodes)?
+What happens internally when you deploy a pod?
+How does scheduling work in Kubernetes?
+What are requests and limits in Kubernetes?
+How do you troubleshoot a pod stuck in Pending state?
+How do you debug CrashLoopBackOff issues?
+What is the difference between Deployment, StatefulSet, and DaemonSet?
+How does service networking work in Kubernetes?
+What is kube-proxy and how does it work?
+How does DNS work inside Kubernetes?
+What is Ingress and how do you configure it?
+How do you secure Kubernetes clusters?
+What is RBAC in Kubernetes?
+How do you manage secrets securely in Kubernetes?
+How do you implement rolling updates and rollbacks?
+How do you monitor Kubernetes clusters?
+How do you troubleshoot node failures?
+How do you handle cluster autoscaling?
+What are common Kubernetes production issues?
+What are best practices for Kubernetes in production?
+----------------------------------------------------------------------------------
+KEDA —> Kubernetes Event Driven Autoscaling
+
+HPA is great. But it only scales on CPU and memory.
+
+What if your Kafka consumer has 1 million messages waiting  but CPU is at 5%?
+
+HPA sees no reason to scale. Your queue keeps growing. Users wait.
+KEDA fixes this.
+
+─────────────────────────
+What is KEDA?
+
+Kubernetes Event Driven Autoscaler.
+
+It extends HPA to scale on any external metric or event source like  Kafka lag, SQS depth, Prometheus metrics, cron schedules, HTTP traffic.
+
+And it can scale all the way to zero then back up the moment events arrive.
+
+─────────────────────────
+How it works:
+1️⃣ You create a ScaledObject —> define what to watch
+2️⃣ KEDA polls the source —> checks queue depth, message count, schedule 3️⃣ KEDA feeds HPA with custom metrics
+4️⃣ HPA scales the workload based on event-driven values
+5️⃣ Queue drains → pods scale back to zero
+
+─────────────────────────
+60+ built-in scalers:
+→ Kafka ( scale consumers based on topic lag. 1 pod per N messages.)
+
+→ AWS SQS (scale based on queue depth. More messages = more workers.)
+
+→ Prometheus  (scale on any custom metric. Error rate, latency, request rate.)
+
+→ Cron (time-based scaling. Scale up at 9am, scale to zero at 6pm.)
+
+→ HTTP requests (scale to zero when no traffic arrives.)
+
+─────────────────────────
+HPA vs KEDA:
+
+🟣 HPA → CPU/memory only, built-in, min 1 pod always. Use for stateless web services.
+
+🟢 KEDA → any event/metric, extends HPA, scales to zero. Use for event-driven workloads.
+
+─────────────────────────
+KEDA doesn't replace HPA  it extends it.
+
+Scale to zero is KEDA's biggest advantage  massive cost savings for batch and event-driven workloads.
+
+KEDA is CNCF graduated  production ready and widely adopted.
+
+Are you using KEDA in your cluster or still relying on HPA only? 💬

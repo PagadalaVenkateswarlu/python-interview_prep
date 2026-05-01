@@ -234,3 +234,41 @@ E-commerce: Guarantees stock, payment, and orders align.
 Travel booking: Avoids double-booking flights or hotel rooms.
 
 👉 In short: ACID properties are the safety net of databases. They make sure that whether you’re transferring money, buying a product, or booking a ticket, the system behaves predictably and reliably—even under stress or failure.
+--------------------------------------------------------------------------------
+**Explain how indexing can degrade performance.**
+
+1.Indexing improves **read performance**, but it can degrade performance in certain situations. Here’s how and why:
+
+1.Slower insert,delete,update operations
+2.need to update/delete the entries of the tables and inserting will create new entry.
+3.due to this will get slower write-heavy systems
+4.If more indexes will burden for storage consumption due to this it will affect the efficiency
+4.Slower bulk operations like bulk inserts,batch updates ,data imports
+5.can be much slower with many indexes because each row triggers index updates.
+
+💡 Best practice: Drop non-essential indexes before bulk loads and recreate them afterward.
+    6.Too many indexes can confuse the query optimizer.
+ **Ineffective or Low-Selectivity Indexes**
+
+ Indexing columns with very few distinct values (like gender or status) may:
+
+ Provide little performance benefit
+
+ Still incur maintenance cost
+
+
+ --------------------------------------------------------------------------------------
+✅ How do you find the second-highest salary without TOP or LIMIT?
+✅ How do you detect duplicates across multiple fields?
+✅ Can you write a recursive CTE to represent an org chart?
+✅ How do you calculate a rolling average without subqueries?
+✅ Can you compare today vs yesterday active users efficiently?
+✅ How do you identify products never sold using a LEFT JOIN?
+✅ Can you rank products by sales within categories using window functions?
+That’s when I realized:
+
+👉 SQL isn’t just about memorizing syntax — it’s about problem-solving, optimization, and thinking like a data engineer.
+
+If you’re preparing for Data Engineering / Data Analyst roles, mastering these scenarios will make you stand out in interviews and in real-world projects.
+
+🚀 My tip: Don’t just read solutions. Practice them with real datasets, experiment with edge cases (NULLs, duplicates, missing data), and think about performance.

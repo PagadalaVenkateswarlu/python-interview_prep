@@ -1,0 +1,175 @@
+Basic flow:
+    Producer ->> Message Queue ->> Consumer
+Few import concepts related to this architecture
+    1.Dead-Letter-Queue(DLQ) ->> stores messages that fail to process after multiple retries.
+    2.At-Most-Once delivery ->> Message is delivered once, but there is a chance it may lost.
+    3.At-Least-once delivery ->> Message will definitely be delivered ,but duplicates can occur.
+    4. QUEUE:
+            Queue processes messages once
+       Stream systems:
+            stream systems allow multiple consumers to read the same data.
+---------------------------------------------------------------------------------------
+𝐇𝐨𝐰 𝐝𝐨𝐞𝐬 𝐑𝐚𝐛𝐛𝐢𝐭𝐌𝐐 𝐚𝐜𝐭𝐮𝐚𝐥𝐥𝐲 𝐰𝐨𝐫𝐤?
+
+It’s not just a queue, it's the silent architect behind scalable, asynchronous systems.
+
+RabbitMQ is a message broker that helps decouple services by allowing them to communicate via messages not direct calls.
+
+𝐇𝐞𝐫𝐞’𝐬 𝐚 𝐬𝐢𝐦𝐩𝐥𝐢𝐟𝐢𝐞𝐝 𝐥𝐨𝐨𝐤 𝐚𝐭 𝐡𝐨𝐰 𝐭𝐡𝐞 𝐟𝐥𝐨𝐰 𝐰𝐨𝐫𝐤𝐬
+
+1️⃣ Producer sends a message
+An app or service (producer) pushes a message to RabbitMQ.
+
+2️⃣ Message reaches an exchange
+The exchange decides how to route it, based on type:
+→ Direct: Exact key match
+→ Topic: Pattern matching
+→ Fanout: Broadcast to all queues
+
+3️⃣ Bindings link exchange to queues
+Each queue subscribes via a binding key to filter the messages it should receive.
+
+4️⃣ Messages land in queues
+Depending on the exchange type, queues receive the relevant messages.
+
+5️⃣ Consumer pulls messages
+A service (consumer) fetches the messages from the queue and processes them.
+
+𝐖𝐡𝐲 𝐑𝐚𝐛𝐛𝐢𝐭𝐌𝐐?
+Asynchronous processing
+Service decoupling
+Flexible message routing
+Scalable architecture
+--------------------------------------------------------------------------
+Here is Docker architecture and its components, broken down clearly 👇
+
+✅ Docker Client
+↳ Sends commands to the Docker engine using the CLI.
+↳ Communicates with the Docker Daemon via REST API.
+↳ The interface between you and everything Docker does.
+
+✅ Docker Daemon
+↳ Builds, runs, and manages containers in the background.
+↳ Handles images, containers, networks, and volumes.
+↳ The actual engine doing the heavy lifting.
+
+✅ Docker Host
+↳ The machine where the Docker engine and containers operate.
+↳ Could be your laptop, a VM, or a cloud server.
+↳ Hosts everything Docker needs to run.
+
+✅ Docker Registry
+↳ Stores and distributes container images securely online.
+↳ Docker Hub is the most common public registry.
+↳ Private registries power enterprise deployments.
+
+✅ Docker Images
+↳ Read-only templates used to create containers quickly.
+↳ Built using Dockerfiles, layered for efficiency.
+↳ The blueprint for every container you spin up.
+
+✅ Containers
+↳ Lightweight, isolated environments running packaged applications consistently.
+↳ Run identically across dev, staging, and production.
+↳ The reason "it works on my machine" finally makes sense.
+
+✅ Networks
+↳ Enable communication between containers and external systems.
+↳ Bridge, host, and overlay networks for different needs.
+↳ The plumbing that connects services together.
+
+✅ Volumes
+↳ Persistent storage for container data beyond the container lifecycle.
+↳ Survive container restarts and rebuilds.
+↳ Critical for databases and stateful workloads.
+
+✅ Docker Objects
+↳ Images, Containers, Volumes, Networks.
+↳ The four building blocks every Docker workflow revolves around.
+
+The truth is - Docker commands are easy to memorise. Docker architecture is what separates people who use containers from people who design with them.
+
+----------------------------------------------------------------------------------
+One of the biggest misconceptions about Kubernetes is this:
+
+People think Kubernetes is about containers.
+
+It’s not.
+
+Kubernetes is actually about moving traffic reliably through chaos.
+
+A user opens your app.
+
+Within milliseconds, Kubernetes performs an entire orchestration dance:
+
+🔹 Load Balancer accepts the request
+🔹 Ingress decides where it should go
+🔹 Service creates a stable virtual endpoint
+🔹 kube-proxy routes traffic to healthy Pods
+🔹 CNI handles cross-node networking
+🔹 Containers finally process the request
+
+And while all this happens…
+
+The control plane is constantly:
+✅ Watching cluster state
+✅ Rescheduling failed Pods
+✅ Maintaining desired replicas
+✅ Updating networking rules dynamically
+
+Most users never notice.
+
+And that’s the point.
+
+The real beauty of Kubernetes is not deployment.
+
+It’s resilience.
+
+Pods die.
+Nodes fail.
+Traffic spikes.
+Containers restart.
+
+But Kubernetes keeps the application alive.
+
+I still remember debugging my first production networking issue.
+
+The app was “running”…
+but traffic wasn’t reaching the Pods.
+
+For hours, we blamed the application.
+
+The actual issue?
+
+A broken chain:
+Ingress → Service → kube-proxy → CNI
+
+That day changed how I saw Kubernetes forever.
+
+Because in distributed systems:
+👉 The application is only one part of the system.
+👉 Networking IS the platform.
+
+If you truly want to master Kubernetes, stop memorizing YAMLs.
+
+Instead, deeply understand this flow:
+
+User → LB → Ingress → Service → kube-proxy → Pod → Container
+
+That single mental model explains:
+• Scaling
+• High availability
+• Service discovery
+• Traffic routing
+• Failover
+• Observability
+• Reliability
+
+Everything.
+
+Kubernetes looks complicated because it solves complicated problems.
+
+-------------------------------------------------------------------------
+This high-availability cloud architecture is designed for resilience, scalability, and fault tolerance. Traffic is distributed through a load balancer across multiple availability zones, while auto-scaling groups ensure applications can handle demand spikes.
+The data layer uses replicated databases for redundancy, and shared services like monitoring, backups, security, and access control strengthen reliability.
+The result is a cloud environment that remains available even during failures, ensuring business continuity and performance.

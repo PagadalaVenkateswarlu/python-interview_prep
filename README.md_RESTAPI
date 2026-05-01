@@ -1,0 +1,49 @@
+🚀 Most APIs don’t fail because of bad logic… they fail because of poor performance decisions.
+
+You can have the best architecture on paper—but if your APIs are slow, everything else suffers.
+The truth?
+ API performance isn’t about one silver bullet. It’s about layering the right optimizations.
+Here are 5 techniques that consistently make a real difference 👇
+🔹 Pagination
+ Stop returning everything at once.
+ Break large datasets into smaller, manageable chunks to reduce response time and improve user experience.
+🔹 Asynchronous Logging
+ Logging shouldn’t slow down your API.
+ Push logs to buffers and process them asynchronously to keep requests fast and non-blocking.
+🔹 Caching (e.g., Redis)
+ Why hit the database repeatedly for the same data?
+ Cache frequently accessed responses and dramatically reduce latency.
+🔹 Payload Compression
+ Large payloads = slow APIs.
+ Use GZIP/ZIP to compress responses and speed up data transfer across the network.
+🔹 Connection Pooling
+ Opening DB connections repeatedly is expensive.
+ Reuse them efficiently to improve throughput and reduce overhead.
+💡 Real impact when done right:
+✔ Lower latency
+ ✔ Higher throughput
+ ✔ Better scalability under load
+ ✔ Improved user experience
+🔁 Key takeaway:
+ High-performing systems aren’t built on one optimization—
+ they’re built on a stack of smart, intentional decisions.
+💬 Which of these have you implemented—and what impact did you see?
+ Anything you’d add to this list?
+-----------------------------------------------------------------------------------
+TRACE : Returns the full HTTP request received by the server for debugging and diagnostic purposes.
+OPTIONS: Return the HTTP Methods supported by the server for the request URL.
+CONNECT: Converts the request connection to a transparent TCP/IP tunnel for secure communication.
+PURGE: Invalidates a cached resource.
+LOCK: Locks the resource for exclusive use by the client.
+UNLOCK: Unlock the resource previously locked by the client.
+MKCOL: Creates a new collection resource.
+COPY: Copies the resource identified by the Request-URI to the destination URI.
+
+--------------------------------------------------------------
+HTTP Status Codes:
+    1XX: Informational
+    2XX: Success
+    3XX: Redirection
+    4XX: Client Errors
+    5XX: Server Errors
+    
