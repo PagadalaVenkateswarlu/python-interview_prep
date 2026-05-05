@@ -2272,3 +2272,20 @@ def login(username: str, password: str):
 “Authentication is the process of verifying a user’s identity. In backend systems, we typically validate credentials like username and password, then generate a session or token such as JWT.
 The client uses this token for subsequent requests. In scalable systems, I prefer token-based authentication because it’s stateless and works well with microservices.
 I also follow best practices like password hashing, token expiration, and optionally multi-factor authentication.”
+------------------------------------------------------------------------------------------------------------------
+What is a WebSocket?
+
+    A communication protocol that enables full-duplex(two-way) communication between a client and a server.
+    Unlike HTTP,it keeps the connection open,allowing real-time data exchange.
+    uses a single TCP connection for sending and receiving messages.(Transmission Control Protocol)
+    Starts as an HTTP handshake,then upgrades to the WebSocket protocol.
+
+How WebSockets are Useful in the Real World?
+    Real-time chat applications(WhatsApp Web,Slack,Messenger).
+    Live sports scores or match updates
+    Stock market dashboards with instant price updates
+    Online multiplayer games for live player actions
+    Collaborative tools(Google Docs live editing,whiteboards)
+    IoT devices for continuous sensor data streaming
+    Live notifications in e-commerce or ticket booking sites.
+

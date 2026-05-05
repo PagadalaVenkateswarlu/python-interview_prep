@@ -16,11 +16,32 @@ Microservices Disadvantages:
     4.Debugging errors for services can be harder since each service has its own service logs.
 ------------------------------------------------------------------------
 1.What is API Gateway in Microservices?
+    It accepts the client API request and route them to correct backend service based on API endpoint.
     API Gateway acts as an entry point for all requests,handling routing,load balancing,security,rate limiting,and logging
     examples:
         NGINX
+    Apart from ROUTING,other capabilities of API Gateways are:
+        1.API Composition:
+            it will call the end points based on web request(phone or laptop) and send the response back to user.
+        2. Authentication:
+            It will request only once authentication is done successfully
+        3.Rate Limiting:
+            We can set rules like:
+                Manage Burst limit:
+                    use to limit the Burst traffic,means max no.of concurrent request that API Gateway can handle before it return 429(Too Many Requests)
+                API Throttling:
+                    Limiting the number of requests from an individual or an application by temp blocking the request,once they crossed the allowed request rate.
+                    -IP based blocking
+                API Queues:
+                    Hold requests to an API ,which can not be processed immediately.It helps to handle the Thundering herd issue.
+
 ----------------------------------------------------------------------
 2.How do you handle service discovery?
+    As microservice can scale up and down,its necessary to know the location(IP address and Port).
+    Service Discovery keep tracks of those:
+        Approach 1: Each microservice register or de-register themselves.
+        Approach 2: Service Discovery,keeps health check of all the registered microservices and keep only active microservices location.
+        
 
     client-side: Eureka,Consul
     server-side: API Gateway+Load Balancer(e.g.,Kubernetes Services)
@@ -103,6 +124,10 @@ Microservices Disadvantages:
                     🔥 Key Takeaway
 
             Circuit Breaker = Fail fast + Recover smartly
+------------------------------------------------------------
+What is load balancer:
+    Generally Load Balancer simply distribute the traffic to the multiple instances of microservice based on various factors like health,traffic load etc.
+    But usually they don't have capability to understand and API and then take decision,where to route it.
 ------------------------------------------------------------
 What is Blue-Green Deployment?
     Deploy new version in parallel(Green) keep old version(Blue).Switch traffic once stable.Ensures zero downtime.
@@ -1049,6 +1074,9 @@ Synchronous Communication:
         Cascading Failures
 
 Asynchronous Communication:
+    A service sends a message/event to a queue or broker and continues its work without waiting.
+    Another service processes the message later.
+
     Characteristics:
         Event-driven communication
         Non-blocking (does not wait for response)
@@ -1074,3 +1102,32 @@ Asynchronous Communication:
         Kafka
         RabbitMQ
         
+“APIs are generally used for synchronous communication where the client sends a request and waits for an immediate response. This is suitable for operations like authentication, payments, or fetching data.
+
+Message systems like RabbitMQ or Kafka are used for asynchronous communication where services communicate through queues or events without waiting for immediate processing. This improves scalability, fault tolerance, and decoupling, making it ideal for background jobs, notifications, analytics, and event-driven microservices.
+
+In modern architectures, both are used together: APIs for real-time interactions and message queues for background or distributed processing.”
+
+Is FastAPI async enough? Why Kafka?
+
+    Because they solve DIFFERENT problems.
+
+    FastAPI async solves:
+        efficient concurrency
+        handling many requests
+        reducing thread blocking
+
+    Kafka/RabbitMQ solves:
+        decoupling services
+        scalability
+        retries
+        resilience
+        event-driven workflows
+
+In FastAPI, async/await provides non-blocking concurrency using the asyncio event loop, which helps efficiently handle many I/O-bound requests. However, it still follows a synchronous request-response model because the client waits for the API response.
+
+Kafka and RabbitMQ introduce asynchronous communication at the architecture level. Services publish messages/events without waiting for downstream processing, enabling loose coupling, scalability, retries, and event-driven workflows.
+
+So async/await is code-level async, while Kafka/RabbitMQ is distributed-system-level async.
+---------------------------------------------------------------------------------------------------
+
