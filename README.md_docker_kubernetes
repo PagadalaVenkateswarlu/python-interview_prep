@@ -41,11 +41,12 @@ Docker image Layers:
 What is if we call docker run image-name
     To generate this message ,Docker took the following steps:
         1.The Docker client contacted the Docker daemon
-        2.The DOcker daemon pulled the image from the Docker Hub.
+        2.The Docker daemon pulled the image from the Docker Hub.
         3.The Docker that produces the output to the Docker client,which sent it to your terminal.
 
 -------------------------------------------------------------
 Content Delivery Network(CDN):
+
     Faster Global Reach
     Optimizes content delivery by routing traffic to the nearest server.
     Handles surges during virtual events or launches.
@@ -378,7 +379,8 @@ Docker images:
                 docker rmi nginx: Remove an image from the local machine.
 
 ---------------------------------------------------------------------------------------------------------
-Docker containers
+Docker containers:
+
 A Docker container is a running instance of a Docker image. Containers provide an isolated runtime environment where applications can run without interfering with each other or the host system.Each container has its own filesystem, networking, and process space but shares the host kernel.
 
 Containers follow a simple lifecycle involving creation, starting, stopping, and deletion. Here’s a breakdown of common container management commands:
@@ -632,3 +634,205 @@ Scale to zero is KEDA's biggest advantage  massive cost savings for batch and ev
 KEDA is CNCF graduated  production ready and widely adopted.
 
 Are you using KEDA in your cluster or still relying on HPA only? 💬
+
+----------------------------------------------------------------------------------------------------
+Kubernetes Core Components:
+    Control Plane : Responsible for cluster management.
+            API Server : Entry point for all commands
+            Scheduler : Decides where pods run
+            Controller Manager: Maintains desired state
+            ETCD: Stores cluster data
+    Worker Node: Runs actual applications.
+            Kubelet : Communicates with master
+            Container Runtime: Docker/containerd
+            Kube Proxy: Networking
+
+Real-Time Example
+    Example: E-commerce Platform
+
+        Suppose:
+            10 million users
+            Flash sales
+            Payment service
+            Recommendation engine
+            Inventory system
+
+        Each service runs as:
+            Separate deployment
+            Multiple replicas
+            Auto-scaled pods
+
+        Kubernetes handles:
+
+            Auto healing
+            Load balancing
+            Rolling deployments
+            Resource isolation
+---------------------------------------------------------------------
+Why Kubernetes over Docker alone?
+
+    Docker manages containers.
+
+    Kubernetes manages:
+
+        Scaling
+        Networking
+        Recovery
+        Orchestration
+
+        Docker is engine.
+
+        Kubernetes is manager.
+---------------------------------------------------------------------
+Q2: How would you automate Kubernetes health checks?
+
+    Possible flow:
+
+        Python script
+        Run kubectl commands
+        Parse outputs
+        Detect unhealthy pods
+        Restart automatically
+        Send alerts
+
+---------------------------------------------------------------------
+How do you handle zero downtime deployment?
+
+    Use:
+        Rolling updates
+        Readiness probes
+        Multiple replicas
+        Load balancers
+---------------------------------------------------------
+How would you design highly available Kubernetes cluster?
+
+    Multiple master nodes
+    ETCD clustering
+    Multi-zone deployment
+    Autoscaling
+    Backup strategy
+---------------------------------------------------------
+Explain Kubernetes self-healing
+
+    If pod crashes:
+
+        Controller notices mismatch.
+        Automatically creates new pod.
+        No manual intervention needed.
+
+------------------------------------------------------------
+How do you monitor Kubernetes?
+
+    Tools:
+        Prometheus
+        Grafana
+        ELK stack
+
+    Monitor:
+        CPU
+        Memory
+        Pod failures
+        Network latency
+
+------------------------------------------------------------
+CrashLoopBackOff
+
+    Means:
+
+        Pod repeatedly crashes.
+
+    Debugging Process
+        kubectl logs pod-name
+        kubectl describe pod pod-name
+
+    Check:
+
+        Environment variables
+        DB connection
+        Memory
+        Port conflicts
+
+----------------------------------------------------------------
+1. Reliability Thinking
+
+    Questions:
+        How do you prevent downtime?
+        How do you ensure recovery?
+
+2. Scalability Thinking
+
+    Questions:
+        How will app behave at 1 million users?
+        How do you autoscale safely?
+
+3. Cost Optimization
+
+    Questions:
+
+        How do you reduce unused resources?
+        How do you optimize CPU/memory?
+
+4. Security Thinking
+
+    Questions:
+
+        How do you secure secrets?
+        How do you isolate workloads?
+
+--------------------------------------------------------------
+Deep Real-Time Architecture Example
+
+    Netflix-like Streaming System
+
+    Microservices:
+
+        User service
+        Recommendation service
+        Streaming service
+        Billing service
+
+    Each service:
+
+        Runs in Kubernetes
+        Auto-scales independently
+        Uses ingress routing
+        Has health checks
+        Uses rolling deployments
+
+    During traffic spikes:
+
+        Kubernetes automatically:
+
+            Adds pods
+            Balances traffic
+            Restarts failures
+
+---------------------------------------------------------------
+Kubernetes Security Deeply
+    RBAC :Role-Based Access Control.
+
+    Controls:
+
+        Who can:
+
+            Deploy
+            Delete
+            Access secrets
+
+-----------------------------------------------------------------
+As a Cloud Engineer or DevOps, you need to know the difference between a Kubernetes Deployment, a StatefulSet, and a DaemonSet.
+
+They all manage pods. They look similar. They're not.
+
+    Each one answers a different question:
+    
+    → Deployment — "I need N identical, interchangeable pods."
+    Stateless workloads where any pod can handle any request. Rolling updates, easy rollbacks, pods get random names and can be replaced anytime.
+    Example: Grafana, an API, a frontend.
+
+    → StatefulSet — "I need N pods with stable identities and persistent storage." Stateful workloads where each pod is unique. Ordered deployment (0, 1, 2…), stable network identity, dedicated PersistentVolume per pod.
+    Example: MySQL, PostgreSQL, Kafka.
+
+    → DaemonSet — "I need exactly one pod per node."
+    Node-level workloads that must run everywhere. Scales automatically with your cluster — add a node, the pod follows.
+    Example: fluentd, node-exporter, cilium-agent.

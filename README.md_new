@@ -2257,3 +2257,34 @@ How does python handle memory management and what role does garbage collection p
     The GC module in python allows you to interact with garbage collector directly providing functions to enable or disable garbage collection, as well as to perform manual collection.
 ---------------------------------------------------------------------------------------------------------
 
+🚀 Demystifying the JVM: How Java Actually Runs Under the Hood ☕
+Ever wondered what actually happens between hitting "Run" on your IDE and your Java application executing?
+While Java's "Write Once, Run Anywhere" (WORA) promise is famous, the magic lies entirely within the Java Virtual Machine (JVM).
+Here is a quick breakdown of the 6 core phases every piece of Java code goes through, as beautifully illustrated in this roadmap:
+🛠️ 1. Build Phase
+Your journey starts with human-readable .java source files. The Java compiler (javac) compiles this code into platform-independent Bytecode (stored in .class files, JARs, or Modules).
+📥 2. Load (Class Loader Subsystem)
+The JVM doesn’t load everything at once. It uses three main class loaders on demand:
+Bootstrap Class Loader: Loads core APIs (like java.lang).
+Platform Class Loader: Loads platform-specific extension classes.
+System Class Loader: Loads your application-level classes from the classpath.
+🔗 3. Link Phase
+Before execution, the bytecode must be prepared through three strict steps:
+Verify: Ensures the bytecode is safe and doesn't violate JVM safety rules.
+Prepare: Allocates memory for static fields and initializes them to default values.
+Resolve: Replaces symbolic references in the code with direct memory references.
+🏁 4. Initialization Phase
+This is where static initializers are run, and static variables are assigned their actual values defined in your code.
+🧠 5. Memory (Run-Time Data Areas)
+The JVM divides memory into two primary zones:
+Shared Across Threads: * Method Area & Run-time Constant Pool (metadata and constants).
+Heap (where objects live, managed by the Garbage Collector (GC)).
+One Per Thread (Thread-Local): * JVM Stack (local variables, frame-based execution).
+PC Register (tracks the address of the current executing instruction).
+Native Method Stack (handles native C/C++ library instructions).
+⚡ 6. Execution Engine
+Finally, the JVM executes the code using a hybrid approach:
+Interpreter: Quickly reads and runs bytecode line-by-line.
+JIT (Just-In-Time) Compiler: Identifies "hot spots" (frequently run code) and compiles them directly into native machine code, caching it in the Code Cache for massive performance gains.
+JNI (Java Native Interface): Interacts with native OS libraries when standard Java APIs aren't enough.
+--------------------------------------------------------------------------

@@ -173,49 +173,51 @@ ACID properties are the foundation of reliable database transactions.They ensure
 online shopping, and ticket bookings remain accurate,consistent, and safe even in the face of crashes or concurrent users.
 
 Atomicity (All or Nothing)
-Definition: A transaction must either complete fully or not at all. No partial updates.
+
+    Definition: A transaction must either complete fully or not at all. No partial updates.
 Example:(Bank Transfer)
     If the system crashes after Step 1, the transaction rolls back, restoring Alice’s balance. Bob doesn’t get partial credit.
+
 Impact: Prevents incomplete or corrupted transactions.
 
 2. Consistency (Follow the Rules)
-Definition: Every transaction must leave the database in a valid state, following all rules and constraints.
 
-Example (E-Commerce Order):
+    Definition: Every transaction must leave the database in a valid state, following all rules and constraints.
 
-A customer buys a product. The system must ensure:
+    Example (E-Commerce Order):
 
-Stock count decreases by 1.
+        A customer buys a product. The system must ensure:
 
-Payment is processed successfully.
+            Stock count decreases by 1.
 
-Order record is created.
+            Payment is processed successfully.
 
-If any rule fails (e.g., payment declined), the transaction is aborted, and stock remains unchanged.
+            Order record is created.
 
-Impact: Guarantees data integrity and business rules are enforced.
+            If any rule fails (e.g., payment declined), the transaction is aborted, and stock remains unchanged.
+
+    Impact: Guarantees data integrity and business rules are enforced.
 
 3. Isolation (No Interference)
-Definition: Transactions run independently, even if executed concurrently.
+        Definition: Transactions run independently, even if executed concurrently.
 
-Example (Movie Ticket Booking):
+        Example (Movie Ticket Booking):
 
-Two users try to book the last seat at the same time.
+            Two users try to book the last seat at the same time.
 
-Isolation ensures only one booking succeeds, preventing double allocation.
+            Isolation ensures only one booking succeeds, preventing double allocation.
 
-Impact: Prevents race conditions and dirty reads.
+    Impact: Prevents race conditions and dirty reads.
 
 4. Durability (Permanent Results)
-Definition: Once a transaction is committed, it remains saved—even if the system crashes immediately afterward.
+    Definition: Once a transaction is committed, it remains saved—even if the system crashes immediately afterward.
 
-Example (Online Shopping Payment):
+        Example (Online Shopping Payment):
 
-After successful payment, the order confirmation is stored in the database.
+            After successful payment, the order confirmation is stored in the database.
+            Even if the server crashes, the order record persists when the system restarts.
 
-Even if the server crashes, the order record persists when the system restarts.
-
-Impact: Ensures reliability and customer trust.
+    Impact: Ensures reliability and customer trust.
 
 📊 Quick Comparison Table
 Property	Meaning	Real-World Example	Prevents Issue
@@ -272,3 +274,573 @@ That’s when I realized:
 If you’re preparing for Data Engineering / Data Analyst roles, mastering these scenarios will make you stand out in interviews and in real-world projects.
 
 🚀 My tip: Don’t just read solutions. Practice them with real datasets, experiment with edge cases (NULLs, duplicates, missing data), and think about performance.
+
+--------------------------------------------------------------------------------------------------
+SQL Proficiency Across PostgreSQL, MySQL, Trino, and DuckDB
+
+    Design scalable data systems
+    Choose the right database for the right workload
+    Optimize slow systems
+    Guide teams on schema design
+    Handle analytics + transactional workloads
+    Solve production performance bottlenecks
+    Architect data flow between services and warehouses
+
+
+1. What Does “Structured Query Language (SQL)” Mean?
+
+    SQL is the language used to:
+
+        Store data
+        Retrieve data
+        Filter data
+        Aggregate data
+        Join multiple datasets
+        Optimize data access
+
+---------------------------------------------------------------------------------------------------------
+PostgreSQL
+
+What is PostgreSQL?
+
+    PostgreSQL is an advanced relational database.
+
+    Best for:
+
+        OLTP systems
+        Transactions
+        Financial systems
+        APIs
+        Complex joins
+        Strong consistency
+
+    Real-World Example
+
+    Imagine:
+
+        E-commerce platform
+        Millions of users
+        Orders, payments, inventory
+
+    You need:
+
+        ACID transactions
+        Reliable consistency
+        Rollbacks
+        Foreign keys
+
+    PostgreSQL is ideal.
+
+Example:
+        CREATE TABLE users (
+        id SERIAL PRIMARY KEY,
+        name TEXT,
+        email TEXT UNIQUE
+    );
+
+    CREATE TABLE orders (
+        id SERIAL PRIMARY KEY,
+        user_id INT REFERENCES users(id),
+        amount NUMERIC,
+        created_at TIMESTAMP
+    );
+
+
+---------------------------------------------------------------------------
+Why PostgreSQL is Powerful
+
+1. ACID Transactions
+
+Example:
+    Money transfer between accounts.
+
+    BEGIN;
+
+    UPDATE accounts
+    SET balance = balance - 100
+    WHERE id = 1;
+
+    UPDATE accounts
+    SET balance = balance + 100
+    WHERE id = 2;
+
+    COMMIT;
+
+If system crashes midway:
+
+    rollback happens
+    no corrupted money state
+
+Tech leads must ensure transactional integrity.
+
+2. Advanced Indexing
+
+    PostgreSQL supports:
+        B-Tree
+        Hash
+        GIN
+        BRIN
+        GiST
+------------------------------------------------------------------------
+Q: How do you identify slow queries in PostgreSQL?
+
+    Use:
+
+        EXPLAIN ANALYZE
+        pg_stat_statements
+        slow query logs
+
+    Check:
+        Sequential scans
+        Missing indexes
+        Expensive joins
+        Sorting operations
+        Large aggregations
+
+    Optimize:
+        Add indexes
+        Rewrite query
+        Partition tables
+        Reduce nested loops
+        Add caching
+
+    EXPLAIN ANALYZE
+    SELECT *
+    FROM orders
+    WHERE created_at > NOW() - INTERVAL '7 days';
+
+    This shows:
+
+        execution plan
+        rows scanned
+        timing
+        bottlenecks
+-----------------------------------------------------------------------------------
+MySQL
+
+What is MySQL?
+
+    MySQL is a relational database heavily used in:
+
+        web applications
+        CMS systems
+        SaaS products
+        startups
+
+    Popular because:
+        simple
+        fast
+        easy to operate
+
+-------------------------------------------------------------------------------------
+Real-World Example
+
+    Instagram-like app:
+
+        user profiles
+        comments
+        likes
+        feeds
+
+        MySQL handles:
+            massive read traffic
+            replication
+            simple transactions
+
+Key Tech Lead Concepts
+    Read Replicas
+
+    Production traffic:
+
+        90% reads
+        10% writes
+
+    Solution:
+
+        Primary DB
+           |
+           |--> Replica 1
+           |--> Replica 2
+           |--> Replica 3
+
+    Writes:
+
+        primary
+
+    Reads:
+
+        replicas
+
+    This scales horizontally.
+
+---------------------------------------------------------------------------
+Q: How do you scale MySQL for millions of users?
+
+    Add indexes
+    Introduce caching
+    Use read replicas
+    Partition large tables
+    Archive historical data
+    Use connection pooling
+    Avoid N+1 queries
+    Add sharding when needed
+
+---------------------------------------------------------------------------
+Example of N+1 Problem
+
+BAD:
+
+for user in users:
+    SELECT * FROM orders WHERE user_id=?
+
+1000 users → 1000 queries
+
+BETTER:
+
+SELECT *
+FROM orders
+WHERE user_id IN (...);
+
+
+-----------------------------------------------------------------------------
+Trino
+    What is Trino?
+
+        Trino is NOT a traditional database.
+
+    It is a:
+
+        distributed query engine
+        analytics federation system
+
+    It queries:
+
+        PostgreSQL
+        MySQL
+        S3
+        Hive
+        Iceberg
+        Kafka
+        Data lakes
+
+    using ONE SQL query.
+
+    Example:
+        SELECT u.name, o.amount
+        FROM postgres.sales.orders o
+        JOIN mysql.crm.users u
+        ON o.user_id = u.id;
+
+    This is huge for enterprise analytics.
+Tech Lead Responsibility
+
+    You must understand:
+
+        distributed query execution
+        memory usage
+        partition pruning
+        data lake architecture
+        query federation
+        connector management
+------------------------------------------------------------------
+When would you use Trino instead of PostgreSQL?
+
+    Use Trino for:
+
+        analytics
+        federated querying
+        large-scale aggregations
+        data lake access
+
+    Use PostgreSQL for:
+
+        transactional systems
+        low-latency APIs
+        OLTP workloads
+
+-------------------------------------------------------------------
+DuckDB
+    What is DuckDB?
+
+    DuckDB is an embedded analytical database.
+
+    Think:
+        “SQLite for analytics.”
+
+
+Why DuckDB Became Popular
+
+    It can query:
+
+        CSV
+        Parquet
+        JSON
+        local files
+
+    VERY fast.
+
+    No server needed.
+
+Real-World Example
+
+    Data scientist has:
+
+        500GB Parquet dataset
+        local machine
+        wants fast analytics
+
+    DuckDB can directly query Parquet.
+
+    SELECT *
+    FROM 'sales.parquet'
+    WHERE revenue > 1000;
+
+    No ETL required.
+
+    DuckDB is excellent for:
+
+        analytics pipelines
+        local experimentation
+        embedded analytics
+        fast BI workloads
+
+    S3 Parquet Files
+      |
+    DuckDB
+      |
+    Python Analytics
+
+Fast and low-cost.
+
+---------------------------------------------
+What is Data Modeling?
+
+Data modeling means:
+
+    “How should data be structured?”
+
+    This impacts:
+
+        scalability
+        performance
+        maintainability
+        analytics
+        storage cost
+------------------------------------------------
+Types of Data Models
+
+    | Type             | Use Case              |
+    | ---------------- | --------------------- |
+    | OLTP normalized  | transactional systems |
+    | Star schema      | analytics             |
+    | Snowflake schema | complex BI            |
+    | Denormalized     | fast reads            |
+
+Example
+    Bad Design
+    orders table
+    -------------
+    everything in one huge table
+
+    Problems:
+
+        duplication
+        slow updates
+        storage waste
+    Better Design
+
+        users
+        orders
+        payments
+        products
+
+Normalized structure.
+
+----------------------------
+Q: Normalize vs Denormalize?
+
+    Normalization:
+
+        reduces redundancy
+        improves consistency
+        ideal for OLTP
+
+    Denormalization:
+
+        improves read performance
+        reduces joins
+        ideal for analytics
+
+Choose based on workload.
+
+----------------------------------
+
+What is Performance Tuning?
+
+    Making queries:
+
+        faster
+        cheaper
+        scalable
+
+
+    | Area         | Optimization    |
+    | ------------ | --------------- |
+    | Query        | rewrite logic   |
+    | Indexes      | faster lookup   |
+    | Partitioning | reduce scans    |
+    | Caching      | avoid DB hits   |
+    | Hardware     | CPU/RAM/disk    |
+    | Parallelism  | distribute work |
+
+--------------------------------------------------------------------
+1. Partitioning
+
+    Split large tables.
+
+    Example:
+
+        by date
+        by region
+
+    Reduces scan cost.
+
+2. Sharding
+
+    Split DB across servers.
+
+    Example:
+
+        Shard 1 → users 1M
+        Shard 2 → users 2M
+
+    Used at huge scale.
+
+3. Connection Pooling
+
+    Without pooling:
+
+        DB crashes from too many connections
+
+    Use:
+        PgBouncer
+        SQLAlchemy pool
+
+4. Query Planning
+
+    DB optimizer decides:
+
+        join order
+        index usage
+        scan type
+
+Tech leads must read execution plans.
+
+5. Columnar vs Row Storage
+
+    | Row Storage       | Columnar             |
+    | ----------------- | -------------------- |
+    | PostgreSQL/MySQL  | DuckDB/Parquet       |
+    | Better for writes | Better for analytics |
+
+--------------------------------------------------
+Q1: How do you optimize a slow SQL query?
+
+    Check execution plan
+    Identify scans
+    Add indexes
+    Reduce joins
+    Partition tables
+    Cache results
+    Use materialized views
+    Rewrite aggregations
+
+----------------------------------------------------
+When would you choose PostgreSQL over Trino?
+
+    PostgreSQL:
+
+        transactional APIs
+        strong consistency
+        OLTP
+
+    Trino:
+
+        distributed analytics
+        querying multiple systems
+        data lake federation
+---------------------------------------------------
+Explain indexing strategy.
+
+    Indexes improve lookup speed but increase:
+
+        storage
+        write overhead
+
+    Need balance.
+
+    Use indexes on:
+
+        WHERE
+        JOIN
+        ORDER BY
+        GROUP BY columns
+
+    Avoid excessive indexing.
+------------------------------------------------------
+
+Explain partitioning.
+
+
+    Partitioning splits large tables into smaller physical chunks.
+
+    Benefits:
+
+        faster scans
+        easier maintenance
+        better archival
+
+    Common strategy:
+
+        date partitioning
+
+---------------------------------------------------------------
+Explain data modeling decisions for scalability.
+
+    For transactional systems:
+
+        normalized schema
+
+    For analytics:
+
+        star schema
+        denormalized reads
+
+    Choose based on:
+
+        access patterns
+        query frequency
+        scale
+        latency requirements
+
+---------------------------------------------------------------------
+Database has to check every row, one by one
+
+    scan every row
+    Target row found
+
+    Takes Time ->> More rows= More delay
+    problem: Query searches blindly
+
+    index = fast
+
+    Instead of scanning everything,database jumps directly to the right place.
+    Quickly narrows down the search path
+
+    Jumps directly to target row
+
+    Found instantly in milliseconds
+
+    Finds rows faster: Reduces search time dramatically
+    Improves where filtering : Filters only relevant rows quickly
+    Speeds up joins:

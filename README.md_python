@@ -226,9 +226,6 @@ Lazy loading
             hidden latency spikes (first access)
 
             thread safety if used in concurrent systems
------------------------------------------------------------------------------------------------------
-1.    There are multiple routes in Angular — how to protect certain routes and open certain routes — how to do it?
-
 ------------------------------------------------------------------------------------------------------
 4.    Where to store the secrets and why — in frontend or backend?
         1.secrets should always be stored in backend only not frontend.
@@ -335,7 +332,7 @@ Lazy loading
 
             Compilation → Bytecode (.pyc)
 
-            Execution → PVM runs bytecode line by line
+             Execution → PVM runs bytecode line by line
 
 🔑 Short Explanation in Simple Lines:
 
@@ -1967,3 +1964,994 @@ Difference between function and method?
         print(result)
 
 A function is an independent reusable block of code, while a method is a function associated with an object or class and usually operates on that object's data using self.
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+🔷 1. What is Backend for Frontend (BFF)?
+
+    A Backend for Frontend (BFF) is a dedicated backend layer tailored for a specific frontend (Web, Mobile, etc.) that sits between the frontend and your core backend services (microservices).
+
+    👉 Instead of frontend calling multiple microservices directly, it calls one BFF, which:
+
+        Aggregates data
+        Adapts responses
+        Handles frontend-specific logic
+
+    🔥 Why BFF Exists (Real Problem)
+
+    Without BFF:
+        Frontend → User Service
+        Frontend → Order Service
+        Frontend → Payment Service
+        Frontend → Notification Service
+
+    Problems:
+        Too many API calls → latency increases
+        Frontend tightly coupled with backend
+        Hard to evolve APIs independently
+        Mobile vs Web need different data formats
+
+    🚀 With BFF
+        Frontend → BFF → Microservices
+
+        BFF:
+            Calls multiple services
+            Combines responses
+            Sends optimized payload
+
+    💡 Real-world Example (Tech Lead Level)
+        🛒 E-commerce App
+            Mobile needs:
+                Product name
+                Price
+                1 image
+                Short description
+
+            Web needs:
+                Full product details
+                Reviews
+                Recommendations
+                Inventory
+
+        👉 Without BFF:
+
+                Same API → over-fetching or under-fetching
+
+        👉 With BFF:
+
+                mobile-bff → lightweight API
+                web-bff → detailed API
+
+        🧠 Tech Lead Insight
+
+            A BFF is not just aggregation — it's:
+
+                Anti-corruption layer
+                Contract stabilizer
+                Performance optimizer
+                Security boundary
+------------------------------------------------------------------------------------------------
+🔷 2. What are APIs (in this context)?
+
+    An API (Application Programming Interface) is a contract that allows systems to communicate.
+
+    In backend:
+        Usually REST APIs (HTTP-based)
+        Sometimes GraphQL or gRPC
+
+    APIs are:
+        Products, not just endpoints
+        Must be:
+            Versioned
+            Backward compatible
+            Secure
+            Observable
+
+------------------------------------------------------------------------------------------------
+🔷 3. BFF + API Architecture (End-to-End Flow)
+
+                    [Frontend]
+                         ↓
+                    [BFF - FastAPI]
+                         ↓
+            ---------------------------------
+            | User Service (Python)         |
+            | Order Service (Java)          |
+            | Payment Service (Go)          |
+            ---------------------------------
+-------------------------------------------------------------------------------------------------
+🔷 4. Implementation in Python (FastAPI)
+
+        Example:
+            from fastapi import FastAPI
+            import httpx
+
+            app = FastAPI()
+
+            @app.get("/product/{product_id}")
+            async def bff_implementation(product_id:int):
+                async with httpx.AsyncClient() as client:
+                    order_bff = client.get(f"url{product_id}")
+                    payment_bff = client.get(f"url{product_id}")
+
+                    order_res,payment_res = await order_bff,await payment_bff
+
+            return {"user": order_res.json(),"payment":payment_res.json()}
+
+        Use async calls → reduces latency
+        Use parallel requests → improves performance
+        Add:
+            Caching (Redis)
+            Circuit breakers
+            Timeouts
+----------------------------------------------------------------------------------
+🔷 5. Design Considerations (Very Important for Interviews)
+
+    ✅ 1. Performance
+        Aggregation reduces round trips
+        Use async + batching
+
+    ✅ 2. Scalability
+        BFF should be stateless
+        Horizontal scaling
+
+    ✅ 3. Security
+        Authentication at BFF layer
+        Token validation
+
+    ✅ 4. Versioning
+        /v1/mobile/dashboard
+        /v2/web/dashboard
+
+    ✅ 5. Fault Tolerance
+        One service fails → partial response
+        Graceful degradation
+----------------------------------------------------------------------------------------
+
+🔷 6. Common Interview Questions (with Tech Lead Answers)
+
+    ❓ Q1: Why not let frontend call microservices directly?
+
+        Direct calls increase:
+            Latency (multiple round trips)
+            Coupling (frontend tied to backend structure)
+            Security risks (exposing internal services)
+
+        👉 BFF solves this by:
+
+            Acting as a single entry point
+            Aggregating responses
+            Hiding internal complexity
+
+    ❓ Q2: When should you NOT use BFF?
+
+        Avoid BFF when:
+
+            Simple application (monolith is enough)
+            Only one frontend
+            No performance bottlenecks
+
+    👉 BFF adds:
+            Extra layer
+            Maintenance overhead
+
+    ❓ Q3: How do you handle failures in BFF?
+
+            Use:
+                Timeouts
+                Retries
+                Circuit breakers
+                Fallback responses
+
+            Example:
+
+                {
+                  "user": {...},
+                  "orders": [],
+                  "message": "Orders service temporarily unavailable"
+                }
+    ❓ Q4: How do you scale BFF?
+
+            Stateless design
+            Load balancing
+            Auto-scaling (Kubernetes)
+            Caching layer
+
+
+    ❓ Q5: REST vs GraphQL in BFF?
+
+            REST	                                 GraphQL
+
+            Fixed response	                         Flexible
+            Over-fetching possible	                 Client controls data
+            Simple caching	                         Complex caching
+
+        👉 Tech Lead Insight:
+
+            Use REST for simplicity
+            Use GraphQL for complex UI needs
+
+    ❓ Q6: How do you optimize BFF performance?
+
+            Async parallel calls
+            Response caching (Redis)
+            Data compression
+            Avoid N+1 calls
+            Use bulk APIs
+
+    ❓ Q7: How do you secure APIs in BFF?
+
+            JWT validation
+            OAuth2
+            Rate limiting
+            API gateway integration
+
+    ❓ Q8: What’s the difference between API Gateway and BFF?
+
+            API Gateway	                                             BFF
+
+            Generic routing	                                         Frontend-specific
+            Cross-cutting concerns	                                 Business logic
+            Authentication	                                         Data shaping
+
+        👉 Tech Lead Insight:
+                Use both together:
+
+                    Client → API Gateway → BFF → Services
+
+
+    🔷 7. Advanced Concepts (Tech Lead Level)
+
+            🔥 1. Anti-Corruption Layer
+
+                    BFF protects frontend from:
+
+                        Backend changes
+                        Legacy systems
+
+            🔥 2. Contract-Driven Development
+
+                        Define API contracts first (OpenAPI)
+                        Avoid breaking changes
+
+            🔥 3. Observability
+
+                        Logging
+                        Tracing (Jaeger)
+                        Metrics (Prometheus)
+
+            🔥 4. Caching Strategy
+
+                        Per-user cache
+                        Partial cache
+                        CDN for static data
+
+🔷 8. Common Mistakes (Important for Interviews)
+
+        ❌ Fat BFF (too much logic)
+        ❌ Tight coupling with services
+        ❌ No caching → slow APIs
+        ❌ Blocking I/O in async system
+        ❌ No fallback handling
+
+🔷 9. Perfect Tech Lead Summary Answer
+
+    “A Backend for Frontend (BFF) is a frontend-specific backend layer that aggregates and adapts data from multiple microservices to meet the needs of a particular client like mobile or web. It reduces frontend complexity, minimizes network calls, and improves performance.
+
+    In Python, we typically implement BFF using FastAPI with async capabilities to handle concurrent service calls efficiently. At scale, we design BFFs to be stateless, cache-enabled, and resilient using patterns like circuit breakers and retries.
+
+    Compared to API gateways, BFF focuses more on data shaping and client-specific logic, while gateways handle cross-cutting concerns like authentication and routing.”
+
+---------------------------------------------------------------------------------------------------------------------------------
+🔹 1. What is a Large-Scale Multi-User System?
+
+    A large-scale multi-user system is a distributed system designed to serve thousands to millions of concurrent users, ensuring:
+
+        High availability (system is always up)
+        Scalability (handles growth smoothly)
+        Low latency (fast responses)
+        Data consistency (correct data across users)
+        Fault tolerance (survives failures)
+
+    At tech lead level, this is NOT just:
+
+        “handling many users”
+
+    It is about:
+
+        “designing systems that continue to perform under unpredictable load, failures, and growth.”
+
+🔹 2. Core Characteristics (What Interviewers Expect)
+
+        1. Concurrency Handling
+
+            Multiple users accessing system simultaneously.
+
+        👉 Example:
+
+            1M users refreshing feed at same time
+
+        👉 How you handle:
+                Async processing
+                Connection pooling
+                Load balancing
+
+        2. Scalability
+
+                Ability to grow without breaking.
+
+                Vertical scaling → bigger machine
+                Horizontal scaling → more machines (preferred)
+
+                👉 Tech lead answer:
+
+                        “We design stateless services so we can horizontally scale behind load balancers.”
+
+        3. Availability
+
+            System should not go down.
+
+        👉 Techniques:
+                Replication
+                Failover systems
+                Multi-region deployment
+
+        4. Performance (Latency)
+
+                Users expect fast responses (<200ms typically).
+
+        👉 Techniques:
+                Caching
+                CDN
+                Database indexing
+
+        5. Data Consistency
+
+            All users see correct data.
+
+        👉 Trade-off:
+
+            Strong consistency vs Eventual consistency
+-------------------------------------------------------------------------------------------------------
+🔹 3. Real-World Example #1 — Instagram Feed
+
+        Think of Instagram.
+
+        Problem:
+            Millions of users open app simultaneously
+            Each expects personalized feed instantly
+
+            Architecture (Simplified)
+
+            Client → API Gateway
+            Load Balancer → Multiple backend servers
+            Feed Service
+            Cache (Redis)
+            Database (PostgreSQL / NoSQL)
+
+        Key Design Decisions
+
+        ✅ Precompute Feeds
+
+        Instead of generating feed on request:
+
+            Pre-generate feeds asynchronously
+
+        👉 Why?
+
+            Faster read performance
+
+        ✅ Caching
+
+        Store user feeds in Redis
+        Reduce DB load
+
+        ✅ Event-Driven Updates
+
+        When someone posts → trigger feed updates
+
+        Tech Lead Insight
+
+            “At scale, reads dominate writes. Optimize for read-heavy workloads using caching and precomputation.”
+------------------------------------------------------------------------------------------------------------
+🔹 4. Real-World Example #2 — E-commerce (Amazon-like)
+
+    Think of Amazon.
+
+    Problem:
+        Millions browsing products
+        Thousands placing orders simultaneously
+
+        Key Challenges:
+            Inventory consistency
+            Payment reliability
+            High traffic during sales
+
+    Architecture Breakdown
+
+    1. Microservices
+
+        User Service
+        Product Service
+        Order Service
+        Payment Service
+
+    2. Database Strategy
+
+        Read replicas for scaling reads
+        Sharding for scaling writes
+
+    3. Queue Systems
+
+        Orders processed via queues (Kafka/RabbitMQ)
+
+    👉 Why?
+
+    Decouple systems
+    Avoid overload
+    Tech Lead Insight
+
+        “Critical systems like payments must be strongly consistent, while product views can tolerate eventual consistency.”
+--------------------------------------------------------------------------------------
+🔹 5. Real-World Example #3 — Ride Sharing (Uber-like)
+
+    Think of Uber.
+
+        Problem:
+            Real-time location tracking
+            Matching drivers and riders instantly
+
+            Architecture Components
+
+                Real-time location service
+                Matching algorithm service
+                Notification system
+
+        Key Design Choices
+
+        ✅ WebSockets / Streaming
+            Real-time updates
+
+        ✅ Geospatial indexing
+            Find nearby drivers quickly
+
+        ✅ Event-driven architecture
+             Driver updates location → event → matching service reacts
+
+        Tech Lead Insight
+
+        “This is a low-latency, real-time system where consistency and speed must coexist.”
+
+🔹 6. Key Architectural Patterns
+
+🔸 1. Stateless Services
+
+        No session stored in server
+        Enables horizontal scaling
+
+🔸 2. Caching Layers
+        Redis / Memcached
+        👉 Reduces:
+                DB load
+                Latency
+
+🔸 3. Load Balancing
+
+    Distributes traffic evenly
+
+🔸 4. Database Scaling
+        Techniques:
+            Indexing
+            Replication
+            Sharding
+
+🔸 5. Asynchronous Processing
+
+    Using:
+        Queues
+        Background workers
+
+🔸 6. Event-Driven Architecture
+        Systems react to events instead of direct calls
+
+🔹 7. Common Failures & How to Handle
+
+    ❌ Problem: Database overload
+
+    ✅ Solution:
+        Add caching
+        Read replicas
+
+    ❌ Problem: Traffic spikes
+
+    ✅ Solution:
+        Auto-scaling
+        Rate limiting
+
+    ❌ Problem: Service failure
+
+    ✅ Solution:
+        Circuit breakers
+        Retry mechanisms
+
+    ❌ Problem: Slow APIs
+
+    ✅ Solution:
+        Async processing
+        Optimize queries
+
+🔹 8. Trade-offs (VERY IMPORTANT FOR INTERVIEWS)
+    CAP Theorem (Simplified)
+
+    You can’t have all 3:
+
+        Consistency
+        Availability
+        Partition tolerance
+    Example:
+        Banking → Consistency first
+        Social media → Availability first
+
+🔹 9. Tech Lead-Level Interview Questions & Answers
+
+❓ Q1: How do you design a system for 1 million users?
+
+    “I would start with a stateless microservices architecture behind a load balancer. Use horizontal scaling, caching (Redis), and database replication. For high throughput, I’d introduce async processing using queues. Observability and autoscaling are critical.”
+
+❓ Q2: How do you handle sudden traffic spikes?
+
+    “Use auto-scaling groups, CDN caching, and rate limiting. Also design for graceful degradation—non-critical features can be temporarily disabled.”
+
+❓ Q3: How do you ensure data consistency?
+
+    “Depends on domain. For financial systems, I use strong consistency with transactions. For social feeds, eventual consistency with background sync is acceptable.”
+
+❓ Q4: How do you reduce database load?
+
+    “Introduce caching layers, optimize queries, use read replicas, and move heavy processing to async workers.”
+
+❓ Q5: Monolith vs Microservices?
+
+    “Start with modular monolith. Move to microservices when scaling teams and systems becomes a bottleneck.”
+
+🔹 10. Strong Closing Statement (Use in Interviews)
+
+“Designing large-scale multi-user systems is about balancing trade-offs—latency, consistency, cost, and complexity—while ensuring the system remains resilient, scalable, and maintainable under real-world conditions.”
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------
+
+🚀 1. Step-by-Step System Design (Instagram / WhatsApp Hybrid)
+
+    Let’s design a system like Instagram + WhatsApp
+
+    🔹 Step 1: Requirements
+
+        ✅ Functional
+                User signup/login
+                Post photos/videos
+                Follow users
+                Like/comment
+                Messaging (real-time)
+                Notifications
+
+        ✅ Non-Functional (THIS IS WHERE TECH LEADS SHINE)
+
+                10M+ users
+                <200ms latency for feed
+                Real-time messaging (<100ms)
+                99.99% availability
+                Scalable to 100M users
+
+    🔹 Step 2: High-Level Architecture
+
+                                Client (Mobile/Web)
+                                        ↓
+                                API Gateway
+                                        ↓
+                                Load Balancer
+                                        ↓
+                        ---------------------------------
+                        |   Microservices Layer         |
+                        |-------------------------------|
+                        | User Service                  |
+                        | Auth Service                  |
+                        | Feed Service                  |
+                        | Post Service                  |
+                        | Chat Service                  |
+                        | Notification Service          |
+                        ---------------------------------
+                                        ↓
+                        ---------------------------------
+                        | Data Layer                    |
+                        |-------------------------------|
+                        | PostgreSQL (core data)        |
+                        | Redis (cache)                 |
+                        | Kafka (events)                |
+                        | Object Storage (images)       |
+                        ---------------------------------
+
+    🔹 Step 3: Key Services Design
+
+    🔸 1. User & Auth Service
+
+            JWT-based authentication
+            OAuth support
+
+    👉 DB: PostgreSQL
+
+    🔸 2. Post Service
+
+            Upload media
+            Store metadata
+    👉 Media stored in:
+            S3-like storage
+    👉 DB:
+            Post metadata
+
+    🔸 3. Feed Service (CRITICAL)
+    Two approaches:
+        🟢 Pull Model
+        Generate feed on request
+        🔴 Push Model (used by Instagram)
+        Precompute feeds
+    “Hybrid model—push for normal users, pull for celebrities.”
+
+
+    🔸 4. Chat Service (WhatsApp-like)
+        WebSockets for real-time
+        Messages stored asynchronously
+    👉 Use:
+            Kafka for message queue
+            Redis for online users
+
+    🔸 5. Notification Service
+            Event-driven
+            Sends push notifications
+
+🔹 Step 4: Data Design
+
+    PostgreSQL Tables
+        users
+        posts
+        followers
+        messages
+
+    Redis
+        Feed cache
+        Session store
+        Online presence
+    Kafka Topics
+        new_post
+        message_sent
+        notification_event
+
+🔹 Step 5: Scaling Strategy
+
+    ✅ Horizontal Scaling
+            Stateless services
+            Kubernetes pods
+
+    ✅ Caching Strategy
+            Feed cache
+            User profile cache
+    ✅ Database Scaling
+            Read replicas
+            Sharding (by user_id)
+    ✅ CDN
+            Serve images globally
+
+🔹 Step 6: Real-Time Messaging Flow
+        User A sends message →WebSocket →Chat Service →Kafka →Consumer →DB + Push to User B
+
+🔹 Step 7: Failure Handling
+        Retry mechanism
+        Circuit breaker
+        Dead letter queues
+
+⚙️ 2. FastAPI-Based Scalable Architecture
+
+    Now let’s make this practical.
+
+    Service Structure
+        /services
+          /user-service
+          /post-service
+          /feed-service
+          /chat-service
+          /notification-service
+
+🔹 Example: FastAPI Service (Post Service)
+
+    from fastapi import FastAPI, UploadFile
+    from pydantic import BaseModel
+
+    app = FastAPI()
+
+    class PostCreate(BaseModel):
+        user_id: int
+        caption: str
+
+    @app.post("/posts")
+    async def create_post(post: PostCreate):
+        # Save metadata to DB
+        # Upload media to storage
+        # Publish event to Kafka
+        return {"status": "created"}
+
+🔹 Async Processing (VERY IMPORTANT)
+
+    import asyncio
+
+    async def publish_event():
+        await kafka_producer.send("new_post", data)
+
+🔹 WebSocket for Chat
+
+    from fastapi import WebSocket
+
+    @app.websocket("/chat")
+    async def chat(websocket: WebSocket):
+        await websocket.accept()
+        while True:
+            data = await websocket.receive_text()
+            # Send to Kafka / process
+
+🔹 Redis Caching Example
+
+    import aioredis
+
+    redis = await aioredis.create_redis_pool("redis://localhost")
+
+    await redis.set(f"feed:{user_id}", feed_data)
+
+
+🔹 Deployment Stack
+    Docker
+    Kubernetes
+    NGINX (gateway)
+    CI/CD (GitHub Actions / Jenkins)
+
+    “FastAPI is great for async IO workloads, but scaling comes from architecture—not framework choice.”
+
+-------------------------------------------------------------------------------------------------------
+🎯 3. Mock Interview (REALISTIC)
+
+🎤 Question 1:
+
+        Design Instagram feed system
+
+            Feed generation strategy (push vs pull)
+            Caching
+            Fan-out problem
+            DB scaling
+
+        “I’d use a hybrid feed model. Precompute feeds for normal users using fan-out-on-write, store in Redis. For high-follower users, generate feeds dynamically to avoid write amplification.”
+
+        ✅ Feedback:
+
+        ✔ Excellent trade-off awareness
+        ✔ Shows real-world scaling understanding
+
+    🎤 Question 2:
+
+        How would you scale chat to millions?
+
+    “Use WebSockets for persistent connections, Kafka for message durability, and Redis for presence tracking. Partition messages by user_id for scalability.”
+
+    ✅ Feedback:
+
+        ✔ Covers real-time + durability
+        ✔ Mentions partitioning → strong signal
+
+🎤 Question 3:
+
+    How do you avoid database bottlenecks?
+
+    “Introduce caching, read replicas, and move heavy operations to async pipelines. Also optimize queries and use indexing.”
+
+    ❗ Feedback:
+
+        👉 Good, but add:
+
+        “Sharding strategy”
+        “Connection pooling”
+
+🎤 Question 4:
+
+    What happens if Redis fails?
+
+    “System should fall back to DB. Redis should be replicated with failover. Cache misses increase latency but system remains functional.”
+
+    ✅ Feedback:
+
+        ✔ Shows resilience thinking
+
+    A strong answer is NOT:
+
+        “Use FastAPI + Redis + Kafka”
+
+    A strong answer IS:
+
+        “Explain WHY each component exists, what problem it solves, and what happens when it fails.”
+-------------------------------------------------------------------------------------------------------
+This topic is not just about writing APIs.
+
+    Architecture
+    Scalability
+    Async internals
+    API standards
+    Data validation
+    Performance bottlenecks
+    Team-level decisions
+    Production reliability
+
+FastAPI is a modern high-performance Python web framework for building:
+
+    REST APIs
+    Backend services
+    Microservices
+    AI APIs
+    Async web applications
+
+It is built on:
+
+    Starlette → async web layer
+    Pydantic → validation layer
+
+2. Async Endpoints — Deep Explanation
+
+    An async endpoint allows the server to handle other requests while waiting for slow operations.
+
+    Example slow operations:
+
+        Database calls
+        External API calls
+        File uploads
+        Redis calls
+        Kafka events
+
+Synchronous Problem:
+
+    @app.get("/users")
+    def get_users():
+        data = requests.get("https://external-api.com")
+        return data.json()
+
+    Problem:
+        Thread gets blocked
+        Cannot serve other users
+        Poor scalability
+
+Async Solution:
+    @app.get("/users")
+    async def get_users():
+        async with httpx.AsyncClient() as client:
+            response = await client.get("https://external-api.com")
+        return response.json()
+
+    Now:
+
+        Request pauses during waiting
+        Event loop handles other users
+        Better throughput
+
+Real-Time Example
+    Food Delivery App
+
+    User opens app:
+
+        Backend simultaneously does:
+
+            Fetch restaurants
+            Fetch offers
+            Fetch delivery partner
+            Fetch live location
+            Fetch recommendations
+
+    Without async:
+        Slow
+
+    With async:
+        All operations happen concurrently
+---------------------------------------------------------------
+Q: Difference between concurrency and parallelism?
+
+    Concurrency means:
+
+        Multiple tasks make progress together.
+
+    Parallelism means:
+
+        Multiple tasks execute literally at the same time using multiple CPU cores.
+
+    Real Example
+    Concurrency
+
+        Restaurant waiter handling many tables.
+
+    Parallelism
+
+        5 chefs cooking simultaneously.
+
+-----------------------------------------------------------------
+Why FastAPI over Flask?
+
+    FastAPI provides:
+
+        native async support
+        automatic validation
+        OpenAPI docs
+        better type safety
+        higher performance
+
+    Flask is lightweight but requires additional libraries for these capabilities.
+
+---------------------------------------------------------------------
+When should NOT use async?
+
+    Avoid async for CPU-bound operations like:
+
+        image processing
+        AI model training
+        video encoding
+
+    Because CPU tasks block event loop.
+
+    Use:
+
+        worker queues
+        multiprocessing
+        distributed workers
+------------------------------------------------------------------------
+How do you scale FastAPI?
+
+    Horizontal scaling:
+
+        Multiple containers
+        Kubernetes pods
+        Load balancer
+
+    Performance improvements:
+
+        Redis caching
+        Async DB drivers
+        Connection pooling
+        CDN
+        Background workers
+--------------------------------------------------------------------------
+Explain event loop simply
+
+    The event loop is the scheduler that manages async tasks.
+
+        When one task waits for I/O:
+
+        loop switches to another task
+
+    This allows high concurrency using fewer threads.
+
+-----------------------------------------------------------------------------
+How do you design production-grade APIs?
+
+I focus on:
+
+    REST standards
+    validation
+    security
+    idempotency
+    pagination
+    observability
+    rate limiting
+    versioning
+    backward compatibility
+------------------------------------------------------------------------------
+Q6: How do you handle failures in async APIs?
+
+    Use:
+
+    retries
+    circuit breakers
+    timeouts
+    fallback responses
+    structured logging
+    distributed tracing
+
+
+

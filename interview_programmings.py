@@ -450,7 +450,10 @@ def isvalid(s):
 # for key,value in dictionary:
 #     data[key]+=value
 # # print(data)
+
+# -----------------------------------------------------------------
 # #10.using get method in dictionary to sum the values in dictionary
+
 # dictionary = [("apple",100),("orange",200),("apple",500),("apple",400),("banana",100)]
 # empty_dict = {}
 # for key,value in dictionary:
@@ -534,21 +537,7 @@ def isvalid(s):
 # # result = list(filter(bool, nums))
 # result = [x for x in nums if x]
 # # print(result)
-# #17.split every 3 digits with coma
-# num = 9154369638
-# s= str(num)
-#
-# s1 = [s[max(i-3,0):i] for i in range(len(s),0,-3)[::-1]]
-# # print(','.join(s1))
-#
-# # spl1 = []
-# # for i in range(len(s), 0, -3):
-# #     start = max(i-3, 0)
-# #     spl1.append(s[start:i])
-# #
-# # spl1.reverse()
-# # data =','.join(spl1)
-# # print(data)
+
 #-----------------------------------------------------------------------
 # #18. split negative and positive numbers based on if else conditions
 # lst = [1,2,3,4,-3,-9,1,-1,7]
@@ -613,16 +602,6 @@ def isvalid(s):
 #                 session[user_id] = final_data - times[user_id]
 # # print(times)
 #--------------------------------------------------------------------------
-# def reverse_digit(n):
-#     reversed_num = 0
-#     while n>0:
-#         digit = n%10
-#         reversed_num = reversed_num*10+digit
-#         n = n//10
-#     return reversed_num
-#
-# # print(reverse_digit(9154369638))
-#--------------------------------------------------------------------------
 # #21.MultiThreading vs MultiProcess
 #
 # #i) MultiThreading : Allows multiple threads in single process
@@ -669,10 +648,10 @@ def isvalid(s):
 # def pass_by_value(lst):
 #     lst = [1,2,3,4]
 #     # print(lst.append(lst))
-#     # print(f"inside the function variables  : {lst}")
+#     return f"inside the function variables  : {lst}"
 #
 # lst = [10,20,30,40]
-# pass_by_value(lst)
+# print(pass_by_value(lst))
 # print(f"outside the variables : {lst}")
 # print(pass_by_value(lst))
 #------------------------------------------------------------------------------------
@@ -680,7 +659,7 @@ def isvalid(s):
 #
 # #1.Parameter ==>> parameter is the value which we passed inside the function definition(inside parenthesis).
 # #2.Argument ==>> Argument in function is value which we are passing while calling time.
-#
+#-----------------------------------------------------------------------------------------------
 # #27.reduce function
 #
 # from functools import reduce
@@ -690,7 +669,7 @@ def isvalid(s):
 # # print(reduce(lambda x,y: x+y,lst))
 # # print(list(map(lambda x:x*2,lst)))
 # # print(list(filter(lambda x:x%2==0,lst)))
-#
+#---------------------------------------------------------------------------------------------
 # #28.yaml file creation
 # import yaml
 #
@@ -698,8 +677,7 @@ def isvalid(s):
 #
 # converting_to_yaml = yaml.dump(data)
 # # print(converting_to_yaml)
-#
-#
+# ---------------------------------------------------------------------------------------------
 # # def main_function(func):
 # #     def wrapper(*args,**kwargs):
 # #         print("wrapper function")
@@ -771,29 +749,22 @@ def isvalid(s):
 # # print(lst[1])
 #
 # # data = lst.sorted)
-#
-# # class A:
-# #     def who(self):
-# #         print("A")
-# #
-# #
-# # class B(A):
-# #     def who(self):
-# #         print("B")
-# #
-# #
-# # class C(A):
-# #     def who(self):
-# #         print("C")
-# #
-# #
-# # class D(B, C):
-# #     pass
-# #
-# #
-# # d = D()
-# # d.who()
-# # print(D.mro())
+#------------------------------DIAMOND PROBLEM------------------------------------------------
+# class A:
+#     def who(self):
+#         print("A")
+# class B(A):
+#     def who(self):
+#         print("B")
+# class C(A):
+#     def who(self):
+#         print("C")
+# class D(B, C):
+#     pass
+
+# d = D()
+# d.who()
+# print(D.mro())
 #
 # lst1 = [1,2,3,4]
 # data = sum(lst1)
@@ -859,14 +830,35 @@ def isvalid(s):
 #     else:
 #         continue
 # print(non_zero_array)
+# -------------------------------send zeros to front----------------------------------
 
+# arr = [1, 2, 0, 8, 0, 7, 0, 0, 6, 5]
+#
+# count = len(arr) - 1
+#
+# # Move non-zero elements from end
+# for i in range(len(arr) - 1, -1, -1):
+#     if arr[i] != 0:
+#         arr[count] = arr[i]
+#         count -= 1
+#
+# # Fill remaining positions with 0
+# while count >= 0:
+#     arr[count] = 0
+#     count -= 1
+#
+# print(arr)
+# --------------------------------------------------------------------------------
 # print(bool("False")) True
+
 # from functools import reduce
+
 # lst = [1,2,3,4,5,6,7,1,9,20,12,0]
 # print(list(map(lambda x:x*x,lst)))
 # print(list(filter(lambda x:x<10,lst)))
 # df = reduce(lambda  x,y:x+y,lst)
 # # print(df)
+# ---------------------------------------------------------------------------------
 # print(sorted(lst,reverse=True))
 # lst.sort(reverse=False)
 # print(lst)
@@ -3195,7 +3187,7 @@ def reverse_string(s):
 
 # print(reverse_string("hello"))
 
-#------------------------------- Lonest substring-------------------------------------------------
+#------------------------------- Longest substring-------------------------------------------------
 def longest_substring(s):
     char_set = set()
     left = 0
@@ -3220,3 +3212,14 @@ def longest_substring(s):
 print(longest_substring("zxyzxyz"))     # 3 -> "xyz"
 print(longest_substring("zxybzxyz"))    # 4 -> "bzxy"
 print(longest_substring("zxybzxyzac"))  # 5 -> "xyzac"
+
+# -----------------------------------------------------------------
+lst = [1, 2, 2, 3, 3, 3]
+count = {}
+
+for i in lst:
+    if i in count:
+        count[i] += 1
+    else:
+        count[i] = 1
+# print(count)

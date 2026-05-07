@@ -552,7 +552,7 @@ In WSGI:
 The waiter cannot handle another customer while waiting
 That is synchronous/blocking behavior
 
-Problem with ASGI:
+Problem with WSGI:
     suppose your app calls:
         Database
         External API
@@ -2288,4 +2288,554 @@ How WebSockets are Useful in the Real World?
     Collaborative tools(Google Docs live editing,whiteboards)
     IoT devices for continuous sensor data streaming
     Live notifications in e-commerce or ticket booking sites.
+
+--------------------------------------------------------------------------------------------
+How Many ways we will run the FastAPI?
+    1. Run FastAPI using Python script (if __name__ == "__main__")
+
+        from fastapi import FastAPI
+        import uvicorn
+
+        app = FastAPI()
+
+        @app.get("/")
+        def home():
+            return {"message": "Hello"}
+
+        if __name__ == "__main__":
+            uvicorn.run(
+                "main:app",
+                host="127.0.0.1",
+                port=8000,
+                reload=True
+            )
+    2. Run using FastAPI CLI (newer FastAPI versions)
+
+        Install FastAPI with standard extras:
+
+            pip install "fastapi[standard]"
+            Run:
+                fastapi dev main.py
+            Production Mode:
+                fastapi run main.py
+
+        This internally uses Uvicorn.
+
+    3. Run using Hypercorn instead of Uvicorn
+
+        Install:
+            pip install hypercorn
+        Run:
+            hypercorn main:app
+        With auto reload:
+            hypercorn main:app --reload
+
+    4. Run using Gunicorn + Uvicorn workers (Production)
+
+        Linux production setup:
+            Install:
+                pip install gunicorn uvicorn
+            Run:
+                gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker
+            Where:
+                -w 4 → 4 worker processes
+                -k → worker type
+            Real-world usage:
+                Large-scale APIs
+                High concurrency systems
+                Production servers
+
+    5. Run inside Docker
+
+        FROM python:3.12
+
+        WORKDIR /app
+
+        COPY . .
+
+        RUN pip install fastapi uvicorn
+
+        CMD ["python", "main.py"]
+
+    Important Concept
+
+            FastAPI itself is NOT a web server.
+            FastAPI is just the framework.
+            You still need an ASGI server like:
+                Uvicorn
+                Hypercorn
+                Daphne
+
+            Think of it like:
+
+                Component	                                         Responsibility
+                FastAPI	                                             API framework
+                Uvicorn	                                             Runs the server
+                Gunicorn	                                         Process manager
+                Nginx	                                             Reverse proxy/load balancer
+
+    Real-World Architecture
+
+    Million-user production setup:
+
+            Client
+               ↓
+            Nginx
+               ↓
+            Gunicorn
+               ↓
+            Uvicorn Workers
+               ↓
+            FastAPI App
+    Which method should you use?
+        Scenario	                                      Best Option
+        Learning	                                      python main.py
+        Local Development	                              fastapi dev main.py
+        Production	                                      gunicorn + uvicorn workers
+        Docker	                                          CMD ["python", "main.py"]
+        Async Heavy Load	                              hypercorn
+
+"Can FastAPI run without uvicorn command?"
+
+    "Yes. FastAPI requires an ASGI server, but we don't need to manually run the uvicorn CLI command. We can start Uvicorn programmatically using uvicorn.run() inside Python, or use other ASGI servers like Hypercorn, Daphne, or production setups like Gunicorn with Uvicorn workers."
+
+-----------------------------------------------------------------------------------------------------------------
+Sync vs Async APIs:
+    scalability
+    concurrency
+    performance bottlenecks
+    distributed systems behavior
+    API responsiveness
+    production architecture decisions
+
+
+1. What is an API?
+
+    API = Application Programming Interface
+    In backend systems, APIs allow systems to communicate over HTTP.
+
+-------------------------------------------------------------------
+2. What is a Synchronous API?
+
+    In a synchronous API:
+        The client sends a request and waits until the server completes processing and returns a response.
+        The request blocks until completion.
+
+Real-World Example
+
+    Food Delivery Counter
+
+    You go to a restaurant counter:
+
+        Order food
+        Wait at counter
+        Receive food
+        Leave
+
+    You cannot do anything else while waiting.
+
+    This is synchronous behavior.
+
+Example:
+    from fastapi import FastAPI
+    import time
+
+    app = FastAPI()
+
+    @app.get("/sync")
+    def sync_api():
+        time.sleep(5)
+        return {"message": "Done"}
+
+
+What Happens Internally?
+        Client Request
+              ↓
+        Thread handles request
+              ↓
+        Thread sleeps for 5 sec
+              ↓
+        Thread blocked
+              ↓
+        Response returned
+
+    During sleep:
+        thread is occupied
+        CPU mostly idle
+        server capacity reduced
+
+Problem with Sync APIs:
+
+    If 1000 users call this endpoint:
+
+        1000 threads may be needed
+        memory usage increases
+        context switching increases
+        throughput decreases
+
+    This becomes expensive.
+
+When Sync APIs Are Good
+
+    Sync APIs are good for:
+
+        simple CRUD apps
+        CPU-heavy operations
+        small internal tools
+        low concurrency systems
+
+    Examples:
+        payroll systems
+        admin portals
+        small ERP systems
+---------------------------------------------------------------------
+
+3. What is an Asynchronous API?
+
+    In asynchronous APIs:
+
+        The server can pause a task while waiting and process other requests meanwhile.
+
+    The request is non-blocking.
+
+    Real-World Example
+
+        Restaurant Token System
+        Order food
+        Get token
+        Sit somewhere
+        Meanwhile restaurant serves others
+        Your token called later
+
+    This is async.
+
+FastAPI Async Example:
+
+    from fastapi import FastAPI
+    import asyncio
+
+    app = FastAPI()
+
+    @app.get("/async")
+    async def async_api():
+        await asyncio.sleep(5)
+        return {"message": "Done"}
+
+---------------------------------------------------------------------------
+Internals of Async
+    Event Loop
+
+    Async Python uses:
+        event loop
+        coroutines
+        cooperative multitasking
+
+Example:
+        Request A starts
+            ↓
+        Waiting DB response
+            ↓
+        Event loop switches to Request B
+            ↓
+        Request C
+            ↓
+        DB response returns
+            ↓
+        Resume Request A
+    One thread can handle many requests.
+
+------------------------------------------------------------------------------
+4. What is Blocking vs Non-Blocking?
+    Blocking
+        Thread waits.
+
+    Examples:
+        file read
+        DB call
+        external API call
+        sleep()
+
+    Non-Blocking
+
+    Task pauses without blocking thread.
+
+    Examples:
+        async DB calls
+        async HTTP requests
+        websocket handling
+
+Blocking operations hold resources while waiting.
+Non-blocking operations release execution control and allow other tasks to continue
+
+-----------------------------------------------------------------------------------
+5. What is Concurrency?
+
+    Concurrency means:
+        Multiple tasks make progress together.
+        Not necessarily simultaneously.
+
+    Example
+
+        A chef:
+
+            boils rice
+            cuts vegetables
+            cooks curry
+
+    Tasks overlap.
+
+    This is concurrency.
+
+    Python Async = Concurrency
+
+    Asyncio provides concurrency.
+--------------------------------------------------------------------------------------
+6. What is Parallelism?
+
+    Parallelism means:
+
+        Multiple tasks execute literally at the same time.
+
+    Requires:
+        multiple CPU cores
+        multiple workers/processes
+    Example
+        4 chefs cooking simultaneously.
+----------------------------------------------------------------------------------------
+Async ≠ Parallel
+
+Async:
+    concurrency
+    best for I/O waiting
+
+Parallel:
+    best for CPU-heavy work
+
+7. I/O Bound vs CPU Bound
+
+    I/O Bound
+
+    Waiting for:
+        DB
+        APIs
+        files
+        network
+
+    Async is excellent here.
+
+    CPU Bound
+
+    Heavy calculations:
+
+        ML inference
+        image processing
+        encryption
+        video rendering
+
+    Async does NOT help much.
+
+    Need:
+        multiprocessing
+        workers
+        distributed computing
+
+--------------------------------------------------------------------------
+Q: Why is async better for I/O operations?
+
+    Because async avoids wasting threads during waiting time.
+
+    While one request waits for DB/network:
+
+        event loop processes other requests
+        improves throughput
+        reduces memory usage
+
+    E-commerce product page:
+
+        Need:
+            product details
+            inventory
+            reviews
+            recommendations
+
+        Without async:
+
+            sequential calls
+
+        With async:
+
+            all fetched together
+
+        Huge latency improvement.
+---------------------------------------------------------------------
+Background Tasks
+
+    Example:
+        send email
+        generate PDF
+        upload analytics
+
+    Do after response.
+
+Using sync DB inside async API can destroy scalability.
+
+Very common production mistake.
+
+---------------------------------------------------------------------------
+11. WebSockets vs HTTP
+    HTTP
+
+    Request → Response
+
+    Good for:
+        CRUD APIs
+
+    WebSocket
+
+        Persistent bidirectional connection.
+
+    Good for:
+
+        chats
+        trading apps
+        gaming
+        live dashboards
+
+    Real Example
+
+        Stock trading app:
+
+            price updates every second
+
+            HTTP polling inefficient.
+
+            WebSockets ideal.
+
+-------------------------------------------------------------------------------
+Common Production Problems
+
+Problem 1: Blocking Inside Async
+
+    Bad:
+    async def api():
+        time.sleep(5)
+
+    Blocks event loop.
+
+    Correct
+    await asyncio.sleep(5)
+
+Problem 2: Too Many Threads
+
+    Sync systems under high load:
+        memory explosion
+        thread starvation
+
+Problem 3: Connection Pool Exhaustion
+
+    If DB pool:
+
+        max 50 connections
+        but 1000 concurrent requests
+
+    Requests queue up.
+
+Problem 4: Unbounded Async Tasks
+
+    Creating millions of coroutines:
+
+        memory pressure
+        event loop lag
+
+    Need throttling.
+
+
+-----------------------------------------------------------------------
+What is an event loop?
+
+    The event loop is the core scheduler in async systems.
+
+    It:
+        manages coroutines
+        pauses tasks during waits
+        resumes them when operations complete
+
+    This enables efficient concurrency with fewer threads.
+------------------------------------------------------------------------
+Difference between concurrency and parallelism?
+
+    Concurrency means tasks progress together.
+
+    Parallelism means tasks execute simultaneously on multiple CPU cores.
+
+    Async provides concurrency, not true parallelism.
+
+------------------------------------------------------------------------
+Why is async useful in FastAPI?
+
+    FastAPI leverages Python asyncio for non-blocking request handling.
+
+    This enables:
+        higher throughput
+        better resource utilization
+        efficient handling of thousands of concurrent I/O requests
+-------------------------------------------------------------------------
+What happens if we use blocking code in async endpoints?
+
+    Blocking operations freeze the event loop.
+
+    This prevents other requests from executing and destroys scalability benefits.
+
+    Examples:
+
+        time.sleep()
+        synchronous DB drivers
+        blocking HTTP libraries
+
+----------------------------------------------------------------------------
+Explain async with real production example.
+
+In an e-commerce system, loading a product page may require:
+
+    inventory service
+    reviews service
+    pricing service
+    recommendation engine
+
+Using async concurrency, all services are queried simultaneously, reducing total response latency significantly.
+
+---------------------------------------------------------------------------------
+What is backpressure in async systems?
+
+    Backpressure is a mechanism to prevent system overload when incoming requests exceed processing capacity.
+
+    Handled using:
+
+        queues
+        rate limiting
+        throttling
+        bounded concurrency
+----------------------------------------------------------------------------------
+What are async queues used for?
+
+    Async queues decouple services and improve scalability.
+
+    Examples:
+
+        email processing
+        notifications
+        video transcoding
+        payment processing
+
+    Common tools:
+    
+        Kafka
+        RabbitMQ
+        Celery
+        Redis streams
+
+
+
+
+
 
