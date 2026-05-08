@@ -844,3 +844,279 @@ Database has to check every row, one by one
     Finds rows faster: Reduces search time dramatically
     Improves where filtering : Filters only relevant rows quickly
     Speeds up joins:
+
+--------------------------------------------------------------------------------------
+DELETE CASCADE and UPDATE CASCADE in Databases
+
+    These are foreign key actions used in relational databases like PostgreSQL, MySQL, Oracle Database, and Microsoft SQL Server.
+
+    They define:
+
+        “What should happen to child table records when the parent table record changes or gets deleted?”
+
+
+    First Understand Parent and Child Tables
+
+    Suppose we have:
+
+        Parent Table → customers
+        customer_id	             name
+        1	                     Venkat
+        2	                     Ravi
+
+        Child Table → orders
+        order_id	     customer_id	 amount
+        101	                 1	         500
+        102	                 1	         700
+
+        Here:
+
+            customers.customer_id = PRIMARY KEY
+            orders.customer_id = FOREIGN KEY
+
+        Relationship:
+
+            orders.customer_id → customers.customer_id
+
+        Meaning:
+
+            Every order must belong to a valid customer.
+
+What is CASCADE?
+
+    CASCADE means:
+
+        Automatically propagate changes from parent table to child table.
+
+    Two major types:
+
+        DELETE CASCADE
+        UPDATE CASCADE
+
+1. DELETE CASCADE
+
+    When a parent row is deleted,
+    all matching child rows are automatically deleted.
+
+    Real-World Analogy
+
+        Imagine:
+
+            Parent = User Account
+            Child = User Posts
+
+        If the user account is deleted,
+        all posts belonging to that user should also disappear.
+
+        That is DELETE CASCADE.
+
+    Without DELETE CASCADE
+
+    Suppose:
+
+        customers
+
+        customer_id	     name
+        1	             Venkat
+
+        orders
+
+        order_id	customer_id
+        101	           1
+        102	           1
+
+    Now run:
+           DELETE FROM customers
+           WHERE customer_id = 1;
+
+    Database error occurs:
+        Cannot delete parent row:
+            foreign key constraint fails
+Why?
+
+    Because child rows still reference customer_id = 1.
+
+    This is called:
+
+        Referential Integrity Protection
+
+        Database prevents orphan records.
+
+    With DELETE CASCADE
+
+    Foreign key:
+        FOREIGN KEY (customer_id)
+        REFERENCES customers(customer_id)
+        ON DELETE CASCADE
+
+    Now if you run:
+        DELETE FROM customers
+        WHERE customer_id = 1;
+
+    Database automatically does:
+        DELETE FROM orders
+        WHERE customer_id = 1;
+
+    Result:
+
+        customers
+
+        (empty)
+
+        orders
+
+        (empty)
+
+    CREATE TABLE customers (
+    customer_id INT PRIMARY KEY,
+    name VARCHAR(100)
+    );
+
+    CREATE TABLE orders (
+        order_id INT PRIMARY KEY,
+        customer_id INT,
+        amount DECIMAL(10,2),
+
+        FOREIGN KEY (customer_id)
+        REFERENCES customers(customer_id)
+        ON DELETE CASCADE
+    );
+
+    Step-by-Step Internal Flow
+
+    When deleting customer:
+        DELETE FROM customers WHERE customer_id = 1;
+
+    Database internally:
+        Finds all child rows
+        Deletes child rows first
+        Deletes parent row
+        Maintains integrity
+
+Dangerous Side of DELETE CASCADE
+
+    DELETE FROM customers;
+
+    If CASCADE exists:
+        millions of orders may disappear
+        invoices disappear
+        payments disappear
+
+        This can destroy production data.
+
+DELETE CASCADE is dangerous when:
+
+    historical data matters
+    audit records matter
+    compliance/legal data required
+
+    Example:
+        Banking System
+        Deleting customer should NOT delete transactions.
+    is_active = false ->> Soft delete is preferred
+
+    Hard Delete
+        DELETE FROM users WHERE id=1; ->> Data physically removed.
+    Soft Delete
+        UPDATE users
+        SET deleted=true
+        WHERE id=1;
+    Data still exists.
+
+    Most enterprise systems prefer soft delete.
+
+-------------------------------------------------------------------------------------
+2. UPDATE CASCADE
+
+    When parent key changes,
+    all child foreign keys automatically update.
+
+    Now change customer ID:
+
+        UPDATE customers
+        SET customer_id = 10
+        WHERE customer_id = 1;
+
+    Without UPDATE CASCADE:
+
+        Database throws error because child rows still reference old value.
+
+    With UPDATE CASCADE
+
+    Constraint:
+
+        FOREIGN KEY (customer_id)
+        REFERENCES customers(customer_id)
+        ON UPDATE CASCADE
+
+    Now database automatically updates child rows.
+
+
+example:
+            CREATE TABLE customers (
+            customer_id INT PRIMARY KEY,
+            name VARCHAR(100)
+        );
+
+        CREATE TABLE orders (
+            order_id INT PRIMARY KEY,
+            customer_id INT,
+
+            FOREIGN KEY (customer_id)
+            REFERENCES customers(customer_id)
+            ON UPDATE CASCADE
+        );
+
+    Internal Working of UPDATE CASCADE
+
+    Database internally:
+
+        Detects parent key update
+        Finds dependent child rows
+        Updates child foreign keys
+        Maintains consistency
+
+    Why UPDATE CASCADE is Rare
+
+    In real systems:
+
+        Primary keys usually never change
+        IDs are immutable
+
+    Example:
+
+        User IDs
+        Order IDs
+        Transaction IDs
+
+    These should not change.
+
+    So UPDATE CASCADE is less commonly used.
+
+--------------------------------------------------------------------------------------
+Where DELETE CASCADE is GOOD
+    Good For:
+        Temporary data
+        Session tables
+        Cache tables
+        Mapping tables
+        Shopping cart items
+        Notification tables
+
+Where DELETE CASCADE is BAD
+    Avoid In:
+        Banking
+        Payments
+        Audit logs
+        Medical systems
+        Insurance systems
+        ERP systems
+
+    Because historical traceability matters.
+
+Why is UPDATE CASCADE rarely used?
+
+    Because primary keys are usually immutable in well-designed systems.
+
+
+

@@ -6,3 +6,5 @@
 8.Deeper explanation about FASTAPI and RESTAPI's
 9.Deeper explanation about OOPS concept
 10.Deeper understanding of Microservice architecture.
+11.DELETE and UPDATE CASCADE
+
