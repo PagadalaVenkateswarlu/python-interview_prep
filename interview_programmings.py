@@ -3223,3 +3223,47 @@ for i in lst:
     else:
         count[i] = 1
 # print(count)
+
+# -----------------------------------------------------------------------
+# Print the name(s) of any student(s) having the second lowest grade in. Students and their marks are given as two lists in same order
+#  If there are multiple students, order their names alphabetically and print
+
+# Sample Input
+
+student_name = ["Harry","Berry","Tina","Akriti","Harsh"]
+marks = [37.21,37.21,37.1,41,39]
+
+data = list(zip(student_name,marks))
+second_marks = sorted(data)[1][1]
+print(second_marks)
+dat = [name for name, mark in data if mark == second_marks]
+print(dat)
+
+
+# --------------------------------------------------------------------------
+lst = [1, 2, 2, 3, 3, 3]
+
+visited = []
+
+for i in range(len(lst)):
+    if lst[i] not in visited:
+        count = 0
+        for j in range(len(lst)):
+            if lst[i] == lst[j]:
+                count += 1
+        print(lst[i], "occurs", count, "times")
+        visited.append(lst[i])
+
+lst = [1, 2, 2, 3, 3, 3]
+
+freq = {}
+
+for num in lst:
+    if num in freq:
+        freq[num] += 1
+    else:
+        freq[num] = 1
+
+for key in freq:
+    print(key, "occurs", freq[key], "times")
+

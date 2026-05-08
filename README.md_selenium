@@ -552,3 +552,23 @@ When should testing NOT be automated?
         One-time tests
         Visual validation
         Exploratory testing
+
+--------------------------------------------------------------
+1. How Do You Isolate Tests?
+
+    Test isolation means:
+
+        One test should not affect another test.
+
+    Every test must:
+
+        run independently
+        produce same result every time
+        not depend on execution order
+
+    If tests share state:
+
+        failures become unpredictable
+        debugging becomes difficult
+        CI/CD becomes unstable
+-------------------------------------------------------------------

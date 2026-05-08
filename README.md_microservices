@@ -1187,3 +1187,238 @@ Here is what consistently separates resilient systems from fragile ones
 → Strong architectures are not defined by complexity. They are defined by controlled failure, predictable behavior, and operational clarity under stress.
 
 ------------------------------------------------------------------------------------------
+Event-Driven Communication:
+    Event-driven communication is a way for systems, services, or components to communicate by sending and reacting to events.
+
+    An event is simply:
+
+        “Something important happened.”
+
+    Examples:
+
+        User placed an order
+        Payment completed
+        File uploaded
+        Temperature crossed threshold
+        Message received
+
+    Instead of continuously asking:
+
+        “Did something happen? Did something happen?”
+
+    systems publish events, and interested systems automatically react.
+
+Simple Real-World Example
+
+    Imagine a restaurant.
+
+    Traditional Communication (Direct Request)
+
+        Customer → Waiter → Chef
+
+        The customer directly asks for food.
+
+    This is tightly connected communication.
+
+Event-Driven Communication
+
+    Restaurant bell rings:
+
+        “Order Ready!”
+
+    Now:
+
+        Waiter reacts
+        Billing counter reacts
+        Delivery person reacts
+
+    The bell does not know who will react.
+
+    This is event-driven communication.
+
+The event is:
+
+    “Order Ready”
+
+Core Components
+    1. Event Producer (Publisher)
+
+    The system that creates the event.
+
+    Example:
+
+        Payment service
+        Order service
+        Sensor device
+
+    It says:
+
+        “Payment completed.”
+
+    2. Event
+
+        The information about what happened.
+
+        Example:
+
+        {
+          "event": "payment_completed",
+          "order_id": 101,
+          "amount": 500
+        }
+    3. Event Broker / Message Queue
+
+    Acts like a middleman.
+
+    Examples:
+
+        Apache Kafka
+        RabbitMQ
+        Amazon SQS
+
+    It receives events and distributes them.
+
+    4. Consumer (Subscriber)
+
+    Services that listen for events.
+
+    Example:
+
+        Email service
+        Notification service
+        Analytics service
+
+    When payment succeeds:
+
+        Email service sends receipt
+        Inventory service updates stock
+        Analytics service records sale
+
+
+           [Payment Service]
+                |
+                |  "Payment Completed"
+                v
+           [Message Broker]
+              /      |      \
+             /       |       \
+            v        v        v
+        [Email] [Inventory] [Analytics]
+
+Why Use Event-Driven Communication?
+    1. Loose Coupling
+
+        Services do not directly depend on each other.
+
+    Payment service does NOT need to know:
+
+        who sends emails
+        who updates analytics
+        who handles inventory
+
+    Huge advantage in microservices.
+
+    2. Scalability
+
+        Consumers can scale independently.
+
+        If notifications increase:
+
+        scale only notification service
+    3. Faster Systems
+
+        Producer sends event and continues work immediately.
+
+        It does not wait for all services.
+
+    4. Reliability
+
+        Events can be stored in queues and processed later.
+
+        Even if a service is temporarily down,
+        the event is not lost.
+
+Real-World Software Example (E-Commerce)
+
+    User buys product.
+
+    Without Event-Driven Architecture
+
+        Order service directly calls:
+
+            payment service
+            email service
+            inventory service
+            shipping service
+
+        Very tightly connected.
+
+
+    With Event-Driven Communication
+
+        Order service publishes:
+            Now different services react independently:
+
+                    | Service           | Action            |
+                    | ----------------- | ----------------- |
+                    | Payment Service   | Process payment   |
+                    | Email Service     | Send confirmation |
+                    | Inventory Service | Reduce stock      |
+                    | Shipping Service  | Start delivery    |
+                    | Analytics Service | Track metrics     |
+-----------------------------------------------------------------------------------
+Event-Driven Communication in Microservices
+
+    This is extremely common in:
+
+        Microservices
+        Cloud systems
+        IoT systems
+        Real-time applications
+
+    Popular tools:
+
+        Apache Kafka
+        RabbitMQ
+        Redis Streams
+        Amazon Web Services SNS/SQS
+
+    Types of Event Communication
+
+        1. Publish-Subscribe (Pub/Sub)
+
+           One event → many consumers
+
+            Example:
+
+                OrderPlaced
+
+                Consumed by:
+
+                    Email
+                    Shipping
+                    Analytics
+
+        2. Queue-Based
+
+        One message → one consumer
+
+        Used for:
+
+            background jobs
+            task processing
+
+        Example:
+
+            image processing
+            report generation
+
+Event-driven communication is an architecture pattern where systems communicate through events. Producers publish events whenever something happens, and consumers subscribe to and react to those events asynchronously, usually through a message broker like Kafka or RabbitMQ.
+
+“Instead of directly calling another service, a system announces that something happened, and interested services react to it.”
+
+
+
+
+
+

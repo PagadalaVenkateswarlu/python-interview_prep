@@ -2834,8 +2834,314 @@ What are async queues used for?
         Celery
         Redis streams
 
+---------------------------------------------------------------
+Parallel Processing vs Concurrency
+
+These two concepts are very important in:
+
+Python
+FastAPI
+Microservices
+Operating Systems
+Distributed Systems
+
+Many people confuse them because both deal with multiple tasks.
+
+But they are different.
 
 
+Concurrency
+
+    Multiple tasks make progress together.
+    The tasks may NOT run at the exact same time.
+    The CPU switches between tasks very quickly.
+
+Parallelism
+
+    Multiple tasks literally run at the same time.
+
+    This requires:
+        multiple CPU cores
+        multiple processors
+
+Simple Real-World Example
+        Concurrency Example — One Chef Handling Many Orders
+
+        Imagine:
+
+            One chef
+            5 dishes
+
+        Chef does:
+
+            Cuts vegetables
+            Starts boiling pasta
+            While pasta cooks → prepares sauce
+            While sauce simmers → grills paneer
+
+        The chef switches between tasks.
+
+        Only ONE chef exists.
+
+            Tasks progress together.
+
+        This is:
+
+            ✅ Concurrency
+
+Parallelism Example — Multiple Chefs
+
+        Now imagine:
+
+            5 chefs
+            Each chef cooks one dish
+            All dishes are cooked simultaneously.
+
+        This is:
+            ✅ Parallelism
+
+Concurrency
+    Task A -> Task B -> Task A -> Task C -> Task B
+
+    CPU keeps switching.
+
+    Looks simultaneous.
+
+    But actually one task runs at a time.
+
+Parallelism
+    CPU Core 1 -> Task A
+    CPU Core 2 -> Task B
+    CPU Core 3 -> Task C
+
+    All run at same time.
+
+Concurrency
+
+    One person handling:
+
+        phone calls
+        emails
+        meetings
+
+    by rapidly switching.
+
+Parallelism
+
+    Three employees:
+
+        one handles calls
+        one handles emails
+        one handles meetings
+
+    simultaneously.
+
+----------------------------------------------------------
+Concurrency in Python
+
+    Usually achieved using:
+
+        asyncio
+        async/await
+        threading
+
+    Best for:
+
+        I/O-bound tasks
+
+    Examples:
+
+        API calls
+        database queries
+        downloading files
+        waiting for network response
+        Example — FastAPI
+
+In FastAPI:
+
+    1000 users send requests.
+
+    While one request waits for DB:
+
+        FastAPI handles another request.
+
+        This is:
+
+            ✅ Concurrency
+
+        Because waiting time is utilized.
+
+Parallelism in Python
+
+    Usually achieved using:
+
+        multiprocessing
+        multiple CPU cores
+
+    Best for:
+        CPU-bound tasks
+        Examples:
+            image processing
+            machine learning
+            video rendering
+            mathematical computation
+
+    Example
+
+        Suppose:
+
+            You process 4 videos
+            Your machine has 4 CPU cores
+
+            Each core processes one video.
+
+        This is:
+
+            ✅ Parallelism
+
+    Important Understanding
+
+        Concurrency ≠ Parallelism
+
+        Concurrency is about:
+            managing multiple tasks efficiently
+
+        Parallelism is about:
+            executing multiple tasks simultaneously
+
+    Another Real-World Example
+
+    Concurrency — Restaurant Waiter
+
+    One waiter handles:
+
+        table 1
+        table 2
+        table 3
+
+    by moving quickly between them.
+
+    Parallelism — Multiple Waiters
+
+    Three waiters serve three tables simultaneously.
+
+    In Operating Systems
+
+    Modern OS uses BOTH:
+
+        concurrency
+        parallelism
+
+    Example:
+        Your laptop simultaneously:
+
+        plays music
+        downloads file
+        runs browser
+        runs IDE
+
+    Some tasks are concurrent.
+    Some are parallel on multiple cores.
+
+FastAPI Real-World Explanation
+
+    FastAPI mainly uses:
+
+        ✅ Concurrency
+
+    Why?
+
+        Web applications spend most time:
+
+            waiting for DB
+            waiting for APIs
+            waiting for network
+
+        So async programming is very efficient.
+
+    But For Heavy Computation
+
+    Example:
+
+        AI inference
+        PDF processing
+        image resizing
+
+    FastAPI often combines:
+
+        async concurrency
+        multiprocessing parallelism
+
+        Together.
+
+Concurrency
+
+    Concurrency is the ability of a system to manage multiple tasks by switching between them efficiently, even if they are not executing simultaneously.
+
+Parallelism
+
+    Parallelism is the ability of a system to execute multiple tasks literally at the same time using multiple CPU cores or processors.
+
+Super Easy One-Line Difference
+
+    Concurrency means “dealing with many tasks at once.”
+    Parallelism means “doing many tasks at the exact same time.”
+
+------------------------------------------------------------------------------------------------------
+Common Authentication Methods
+
+1. Session-Based Authentication
+    Server stores session in memory/DB
+    Client stores session ID (cookie)
+
+    Example:
+
+    Traditional websites (banking apps)
+
+    ✔ Simple
+    ❌ Not scalable for distributed systems
+
+2. Token-Based Authentication (JWT)
+    Server generates token
+    No need to store session on server
+
+    Example:
+
+    Modern APIs (FastAPI, microservices)
+
+    ✔ Scalable
+    ✔ Stateless
+    ❌ Token revocation is tricky
+
+3. OAuth (Third-Party Login)
+    Login via Google, Facebook, etc.
+
+    Example:
+
+    “Login with Google”
+
+    ✔ No password handling
+    ✔ Secure delegation
+
+4. Multi-Factor Authentication (MFA)
+    Combine multiple factors
+
+    Example:
+
+    Password + OTP from phone
+
+    ✔ Very secure
+    ❌ Slightly more friction
 
 
+-----------------------------------------------
+Best Practices (Important for Interviews)
+Never store plain passwords → use hashing (bcrypt)
+Use HTTPS always
+Implement token expiration
+Use refresh tokens
+Add rate limiting (prevent brute force)
+Enable MFA for sensitive apps
 
+“Authentication is the process of verifying a user’s identity.
+In backend systems, we typically validate credentials like username and password, then generate a session or token such as JWT. The client uses this token for subsequent requests. In scalable systems, I prefer token-based authentication because it’s stateless and works well with microservices. I also follow best practices like password hashing, token expiration, and optionally multi-factor authentication.”
