@@ -3267,3 +3267,28 @@ for num in lst:
 for key in freq:
     print(key, "occurs", freq[key], "times")
 
+# ---------------------------------------------------------------
+# import numpy as np
+# import time
+# # Using Python loop
+# numbers = list(range(1, 1000000))
+# start = time.time()
+# squared_loop = [x**2 for x in numbers]
+# end = time.time()
+# print("Python loop time:", round(end - start, 4), "seconds")
+# # Using NumPy vectorization
+# arr = np.array(numbers)
+# start = time.time()
+# squared_np = arr ** 2
+# end = time.time()
+# print("NumPy vectorization time:", round(end - start, 4), "seconds")
+# Explanation:
+# • Python list comprehensions iterate one element at a time — they're readable but slower
+# for large computations.
+# • NumPy vectorization leverages optimized C-backed operations and processes entire arrays
+# in bulk.
+# • In this example, squaring a million numbers is 5–50x faster with NumPy depending on your
+# machine.
+# Tip:
+    # For large datasets and numerical operations, always prefer vectorized NumPy operations over
+    # loops — it’s one of the most important optimizations for any data-heavy or ML workload.

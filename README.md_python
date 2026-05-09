@@ -226,6 +226,12 @@ Lazy loading
             hidden latency spikes (first access)
 
             thread safety if used in concurrent systems
+
+Generator: A function using yield to return items one at a time.It automatically manages state and raises StopIteration.
+Iterator: A class-based implementation with __iter__() and __next__() methods
+Both allow lazy evaluation,but generators are shorter and more pythonic for simple use cases.
+
+Use Generators when performance and memory efficiency matter,especially with large datasets or streaming data.
 ------------------------------------------------------------------------------------------------------
 4.    Where to store the secrets and why — in frontend or backend?
         1.secrets should always be stored in backend only not frontend.
