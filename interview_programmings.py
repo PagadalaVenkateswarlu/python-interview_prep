@@ -3345,3 +3345,13 @@ if word != "":
 # Print output
 for k in result:
     print(k, "=", result[k])
+# ---------------------------------------------------------------------------
+def find_missing_number(arr, n):
+
+    expected_sum = n * (n + 1) // 2
+
+    return expected_sum - sum(arr)
+
+
+print(find_missing_number([1,2,3,4,5,6,7,8,10], 10))
+# -

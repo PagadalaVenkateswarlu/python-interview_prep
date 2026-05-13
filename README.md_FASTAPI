@@ -3150,3 +3150,21 @@ Enable MFA for sensitive apps
 
 “Authentication is the process of verifying a user’s identity.
 In backend systems, we typically validate credentials like username and password, then generate a session or token such as JWT. The client uses this token for subsequent requests. In scalable systems, I prefer token-based authentication because it’s stateless and works well with microservices. I also follow best practices like password hashing, token expiration, and optionally multi-factor authentication.”
+
+-------------------------------------------------------------------------------------------------
+End-to-End Request Flow in Modern Enterprise Microservice Architecture
+
+A modern enterprise request flow usually looks something like this:
+
+DNS → WAF → Load Balancer → API Gateway → Authentication → Kubernetes → Microservices → Kafka/Event Bus → Database
+
+And every single layer exists for a reason.
+For example:
+    • DNS resolves domain names to IP addresses
+    • WAF blocks malicious traffic and DDoS attacks
+    • Load Balancers distribute traffic across healthy instances
+    • API Gateways handle routing, rate limiting, logging, and policies
+    • Authentication systems validate JWT tokens and SSO
+    • Kubernetes manages scaling and container orchestration
+    • Kafka enables asynchronous communication between services
+
