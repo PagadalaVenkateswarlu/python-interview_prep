@@ -1453,7 +1453,7 @@ OOPS Concept:
             def get_balance(self):
                 return self.__balance
 
-        Real-world Mapping
+        Real-world  Mapping
             ATM machine:
                 you don't access database directly
                 you go through:
@@ -1490,7 +1490,7 @@ OOPS Concept:
             enables scalability
 
 Difference between Abstraction and Encapsulation?
-            | Feature        | Encapsulation               | Abstraction                 |
+        | Feature        | Encapsulation               | Abstraction                 |
         | -------------- | --------------------------- | --------------------------- |
         | Goal           | Protect data                | Hide complexity             |
         | Focus          | *How data is accessed*      | *What to show to user*      |
@@ -2755,7 +2755,7 @@ A function is an independent reusable block of code, while a method is a functio
 
     ❗ Feedback:
 
-        👉 Good, but add:
+        👉 Good, but add: 
 
         “Sharding strategy”
         “Connection pooling”

@@ -6,7 +6,7 @@
 #         reverse = reverse *10+digit
 #         num//=10
 #     return reverse
-# #print(reverse_number(1234567))
+# print(reverse_number(1234567))
 # ------------------- Method 2------------------------------
 # s = 12345
 # print(int(str(s)[::-1]))
@@ -3292,3 +3292,56 @@ for key in freq:
 # Tip:
     # For large datasets and numerical operations, always prefer vectorized NumPy operations over
     # loops — it’s one of the most important optimizations for any data-heavy or ML workload.
+
+# --------------------------------------------------------------------------------------------
+data = "My name is Ram I am from Bengaluru. Ram is my name"
+
+word = ""
+result = {}
+
+i = 0
+
+while i < len(data):
+
+    ch = data[i]
+
+    # Build word manually
+    if ch != " " and ch != ".":
+        word = word + ch
+
+    # When space or dot comes, store count
+    else:
+        if word != "":
+
+            # check word exists manually
+            found = False
+
+            for k in result:
+                if k == word:
+                    result[k] = result[k] + 1
+                    found = True
+
+            if found == False:
+                result[word] = 1
+
+            word = ""
+
+    i = i + 1
+
+
+# Last word handling
+if word != "":
+    found = False
+
+    for k in result:
+        if k == word:
+            result[k] = result[k] + 1
+            found = True
+
+    if found == False:
+        result[word] = 1
+
+
+# Print output
+for k in result:
+    print(k, "=", result[k])

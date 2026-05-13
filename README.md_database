@@ -161,7 +161,32 @@ Normalization:
 
         Benefits: No duplication, easy updates, consistent data, scalable design.
 
+-----------------------------------------------------------------------
+➤ 𝐖𝐡𝐚𝐭 𝐃𝐨𝐞𝐬 𝐀𝐂𝐈𝐃 𝐌𝐞𝐚𝐧?
 
+ACID stands for Atomicity, Consistency, Isolation, and Durability the four key properties that guarantee reliable processing of database transactions.
+
+➤ 1. Atomicity
+→ A transaction is all-or-nothing
+→ If any part fails, the entire transaction is rolled back
+→ ✅ Example: Transferring money debit and credit must both succeed
+
+➤ 2. Consistency
+→ Ensures that data moves from one valid state to another
+→ Maintains database rules, constraints, and integrity
+→ ✅ Example: Preventing negative balances in banking apps
+
+➤ 3. Isolation
+→ Transactions run independently without affecting each other
+→ Final output is as if transactions were executed sequentially
+→ ✅ Example: Two users placing an order simultaneously won’t corrupt data
+
+➤ 4. Durability
+→ Once a transaction is committed, it remains even after a crash
+→ Changes are permanently recorded
+→ ✅ Example: Order confirmation survives system failure
+
+------------------------------------------------------------------------------------------
 ACID properties?
 
 ACID ->> Atomicity,Consistency,Isolation,Durability
@@ -1117,6 +1142,147 @@ Where DELETE CASCADE is BAD
 Why is UPDATE CASCADE rarely used?
 
     Because primary keys are usually immutable in well-designed systems.
+
+-----------------------------------------------------------------------------------------
+
+SQL INDEXES:
+    Why some queries fly while others crawl
+
+    Faster queries
+    better performance
+    efficient search
+    optimized database
+
+    The Problem:
+        No INDEX = FULL TABLE SCAN
+
+        Database has to check every row,one by one
+        Takes Time More rows=More delay
+
+        Database checks: Many rows to find the required data.
+        Slow on: Large tables as data grows
+        wastes time and resources.
+        Problem: Query searches blindly
+    The Solution:
+        INDEX =  FAST LOOKUP
+
+        Instead of scanning everything,database jumps directly to the right place.
+        INDEX(like Table of Contents) Jumps directly to target row
+        found instantly in  milliseconds!
+        quickly narrows down the search path
+        FINDS ROWS FASTER: Reduces seach time dramatically
+        IMPROCES WHERE FILTERING: Filters only relevant rows quickly
+        SPEEDS UP JOINS: Joins become faster with indexed columns.
+CORE TYPES:
+    CLUSTERED VS NON-CLUSTERED
+
+    Two powerful ways to organize and find data faster.
+
+    CLUSTERED INDEX:
+        The data itself is stored in the index order.
+            Data stored in sorted order
+            only one per table
+            Great for range searches
+
+    NON-CLUSTERED INDEX:
+        The index is stored separately with pointers to the data.
+            Separate lookup structure
+            Many allowed per table
+            Great for quick searches
+
+REAL USE CASES:
+    Find customer by email instantly
+    Speed up joins operations
+        used in ETL pipelines and analytics queries
+        Fast Date range searches: Used in reports,dashboards,transaction history.
+
+HOW IT WORKS(B-TREE INDEX)
+
+TYPES OF INDEXES:
+    Primary index: On primary key column
+    Unique index: Ensures unique values
+    Composite index: On multiple columns
+    Full Test Index: for test search optimization
+    Hash index: For exact match lookups
+
+TRADE-OFFS:
+      More Storage:  Indexes consume extra disk space
+      Slower Writes: INSERT/UPDATE/DELETE become slower
+      Maintenance Overhead: Indexes need maintenance and rebalancing
+      Over-Indexing Risk: Too many indexes can hurt performance
+
+BEST PRACTICES:
+    Index frequently searched columns
+    Use composite indexes wisely
+    Monitor slow queries
+    Use EXPLAIN ANALYZE
+    Balance read vs write workload
+IMPACT AT SCALE:
+    Well-designed indexes can improve query performance from seconds to milliseconds,even on billions of rows
+
+----------------------------------------------------------------------------------------------------------
+Most candidates can write a basic ROW_NUMBER. Few can explain when to use ROWS vs RANGE, or why their running totals drift at month boundaries when timestamps repeat. In production, that kind of error becomes a trust problem on a dashboard.
+
+Window functions are not about syntax.
+They are about reasoning over state across rows.
+
+𝗧𝗵𝗲 𝟯 𝗽𝗶𝗲𝗰𝗲𝘀 𝘁𝗵𝗮𝘁 𝗺𝗮𝘁𝘁𝗲𝗿:
+
+→ PARTITION BY. Defines the group. Without it, the window is the entire result set.
+→ ORDER BY. Defines the sequence. Without it, "previous row" has no meaning.
+→ Frame clause (ROWS or RANGE). Defines what the function actually sees.
+
+The frame is what most candidates miss.
+ROWS counts physical rows.
+RANGE includes peer rows with the same ORDER BY value.
+That difference matters when timestamps, prices, or scores repeat.
+
+𝗧𝗵𝗲 𝗳𝘂𝗻𝗰𝘁𝗶𝗼𝗻𝘀 𝘄𝗼𝗿𝘁𝗵 𝗸𝗻𝗼𝘄𝗶𝗻𝗴 𝗰𝗼𝗹𝗱:
+
+→ ROW_NUMBER, RANK, DENSE_RANK. Different answers when values tie.
+→ LAG, LEAD. Compare a row to its neighbor without self-joining.
+→ SUM, AVG with OVER. Running totals, moving averages, cumulative metrics.
+→ FIRST_VALUE, LAST_VALUE. Anchor values within a partition.
+→ NTILE. Bucket rows into N equal groups.
+
+The interview answer is syntax.
+The production answer is choosing the correct partition, order, and frame so the result stays stable.
+
+That is how a 200-line self-join turns into 20 lines of SQL people can maintain.
+
+
+--------------------------------------------------------------------------------------
+1️⃣ SELECT + WHERE + ORDER BY
+→ The foundation of every query
+→ Filter smarter, not harder
+→ Stop using SELECT * in production
+
+2️⃣ GROUP BY + HAVING
+→ This is where raw data becomes business insights
+→ Know the difference between WHERE vs HAVING
+→ Aggregations = real analytical thinking
+
+3️⃣ JOINS
+→ Probably the most asked SQL topic in interviews
+→ Especially LEFT JOIN in real-world projects
+→ Understanding joins = understanding relationships between data
+
+4️⃣ CASE WHEN
+→ Turns SQL into business logic
+→ Categorize, flag, segment, transform
+→ One of the most underrated SQL skills
+
+5️⃣ CTEs (WITH Clause)
+→ Cleaner queries
+→ Easier debugging
+→ Makes complex logic readable like production-grade SQL
+
+The biggest mistake I see?
+People memorize syntax… but don’t understand why queries are written a certain way.
+
+That’s the difference between:
+❌ “I know SQL”
+✅ “I can solve business problems using SQL”
 
 
 

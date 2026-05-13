@@ -204,13 +204,13 @@ How FastAPI Offers Speed
     This is the key performance advantage.
 
 Full Architecture:
-            Mobile App / React Frontend
+          Mobile App / React Frontend
                ↓
-            Internet
+          Internet
                ↓
-             Nginx
+          Nginx
                ↓
-           Load Balancer
+          Load Balancer
                ↓
           Gunicorn Manager
                ↓
@@ -894,6 +894,11 @@ JWT = Header + Payload + Signature -->> JWT is a compact and self-contained way 
 Authorization:Bearer<token>
 
 Login -> Token -> Request -> Verify -> Response
+
+JWT (JSON Web Token) authentication has become a widely used approach for securing modern web applications and APIs. It enables secure communication between client and server by validating users through digitally signed tokens.
+Unlike traditional session-based authentication, JWT supports stateless authentication, making it highly scalable for distributed and microservice-based architectures. It also works well with modern frontend frameworks and cloud-native applications.
+Implementing secure authentication is essential for protecting APIs, user data, and application resources in today’s software systems.
+
 ------------------------------------------------------------------------------------------------------
 Implementing OAuth2 and JWT (JSON Web Tokens) correctly ensures scalable and stateless authentication across distributed systems.
 
