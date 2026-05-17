@@ -84,7 +84,7 @@ It handles tasks like:
 
         For example, a public API might allow a maximum of 100 requests per minute per user. If a client exceeds this limit, the API Gateway will block additional requests until the rate resets.
 
-3. Load Balancing:
+3.Load Balancing:
 
     High-traffic applications rely on load balancing to distribute incoming requests evenly across multiple instances of a service.
 
@@ -94,7 +94,7 @@ It handles tasks like:
 
         Use algorithms like round-robin, least connections, or weighted distribution to manage traffic intelligently.
 
-4. Caching:
+4.Caching:
 
     To improve response times and reduce the strain on backend services, most API Gateways provide caching.
 
@@ -734,4 +734,569 @@ Rate Limiting Algorithms:
 
                 If there aren't enough tokens, the request is dropped.
 
+            import time
+
+            class TokenBucket:
+                def __init__(self, capacity, fill_rate):
+                    self.capacity = capacity  # Maximum number of tokens the bucket can hold
+                    self.fill_rate = fill_rate  # Rate at which tokens are added (tokens/second)
+                    self.tokens = capacity  # Current token count, start with a full bucket
+                    self.last_time = time.time()  # Last time we checked the token count
+            
+                def allow_request(self, tokens=1):
+                    now = time.time()
+                    # Calculate how many tokens have been added since the last check
+                    time_passed = now - self.last_time
+                    self.tokens = min(self.capacity, self.tokens + time_passed * self.fill_rate)
+                    self.last_time = now
+            
+                    # Check if we have enough tokens for this request
+                    if self.tokens >= tokens:
+                        self.tokens -= tokens
+                        return True
+                    return False
+            
+                # Usage example
+                limiter = TokenBucket(capacity=10, fill_rate=1)  # 10 tokens, refill 1 token per second
                 
+                for _ in range(15):
+                    print(limiter.allow_request())  # Will print True for the first 10 requests, then False
+                    time.sleep(0.1)  # Wait a bit between requests
+                
+                time.sleep(5)  # Wait for bucket to refill
+                print(limiter.allow_request())  # True
+
+    2. Leaky Bucket:
+        
+        The Leaky Bucket algorithm is similar to Token Bucket but focuses on smoothing out bursty traffic.
+
+        How it works:
+            Imagine a bucket with a small hole in the bottom.
+            
+            Requests enter the bucket from the top.
+            
+            The bucket processes ("leaks") requests at a constant rate through the hole.
+            
+            If the bucket is full, new requests are discarded.
+
+        from collections import deque
+        import time
+        
+        class LeakyBucket:
+            def __init__(self, capacity, leak_rate):
+                self.capacity = capacity  # Maximum number of requests in the bucket
+                self.leak_rate = leak_rate  # Rate at which requests leak (requests/second)
+                self.bucket = deque()  # Queue to hold request timestamps
+                self.last_leak = time.time()  # Last time we leaked from the bucket
+        
+            def allow_request(self):
+                now = time.time()
+                # Simulate leaking from the bucket
+                leak_time = now - self.last_leak
+                leaked = int(leak_time * self.leak_rate)
+                if leaked > 0:
+                    # Remove the leaked requests from the bucket
+                    for _ in range(min(leaked, len(self.bucket))):
+                        self.bucket.popleft()
+                    self.last_leak = now
+        
+                # Check if there's capacity and add the new request
+                if len(self.bucket) < self.capacity:
+                    self.bucket.append(now)
+                    return True
+                return False
+        
+        # Usage example
+        limiter = LeakyBucket(capacity=5, leak_rate=1)  # 5 requests, leak 1 per second
+        
+        for _ in range(10):
+            print(limiter.allow_request())  # Will print True for the first 5 requests, then False
+            time.sleep(0.1)  # Wait a bit between requests
+        
+        time.sleep(1)  # Wait for bucket to leak
+        print(limiter.allow_request())  # True
+
+    Pros:
+        Processes requests at a steady rate, preventing sudden bursts from overwhelming the system.
+        
+        Provides a consistent and predictable rate of processing requests.
+
+    Cons:
+        Does not handle sudden bursts of requests well; excess requests are immediately dropped.
+        
+        Slightly more complex to implement compared to Token Bucket.
+
+    3. Fixed Window Counter:
+        
+        The Fixed Window Counter algorithm divides time into fixed windows and counts requests in each window.
+
+        How it works:
+
+            Time is divided into fixed windows (e.g., 1-minute intervals).
+            
+            Each window has a counter that starts at zero.
+            
+            New requests increment the counter for the current window.
+            
+            If the counter exceeds the limit, requests are denied until the next window.
+    
+    import time
+
+    class FixedWindowCounter:
+        def __init__(self, window_size, max_requests):
+            self.window_size = window_size  # Size of the window in seconds
+            self.max_requests = max_requests  # Maximum number of requests per window
+            self.current_window = time.time() // window_size
+            self.request_count = 0
+    
+        def allow_request(self):
+            current_time = time.time()
+            window = current_time // self.window_size
+    
+            # If we've moved to a new window, reset the counter
+            if window != self.current_window:
+                self.current_window = window
+                self.request_count = 0
+    
+            # Check if we're still within the limit for this window
+            if self.request_count < self.max_requests:
+                self.request_count += 1
+                return True
+            return False
+    
+    # Usage example
+    limiter = FixedWindowCounter(window_size=60, max_requests=5)  # 5 requests per minute
+    
+    for _ in range(10):
+        print(limiter.allow_request())  # Will print True for the first 5 requests, then False
+        time.sleep(0.1)  # Wait a bit between requests
+    
+    time.sleep(60)  # Wait for the window to reset
+    print(limiter.allow_request())  # True
+    
+    Pros:
+        Easy to implement and understand.
+        
+        Provides clear and easy-to-understand rate limits for each time window.
+    
+    Cons:
+        Does not handle bursts of requests at the boundary of windows well. Can allow twice the rate of requests at the edges of windows.
+    
+    4. Sliding Window Log:
+        
+        The Sliding Window Log algorithm keeps a log of timestamps for each request and uses this to determine if a new request should be allowed.
+
+    How it works:
+        Keep a log of request timestamps.
+        
+        When a new request comes in, remove all entries older than the window size.
+        
+        Count the remaining entries.
+        
+        If the count is less than the limit, allow the request and add its timestamp to the log.
+        
+        If the count exceeds the limit, request is denied.
+
+    Pros:
+        Very accurate, no rough edges between windows.
+        
+        Works well for low-volume APIs.
+
+    Cons:
+        Can be memory-intensive for high-volume APIs.
+        
+        Requires storing and searching through timestamps.
+
+    import time
+    from collections import deque
+    
+    class SlidingWindowLog:
+        def __init__(self, window_size, max_requests):
+            self.window_size = window_size  # Size of the sliding window in seconds
+            self.max_requests = max_requests  # Maximum number of requests per window
+            self.request_log = deque()  # Log to keep track of request timestamps
+    
+        def allow_request(self):
+            now = time.time()
+            
+            # Remove timestamps that are outside the current window
+            while self.request_log and now - self.request_log[0] >= self.window_size:
+                self.request_log.popleft()
+    
+            # Check if we're still within the limit
+            if len(self.request_log) < self.max_requests:
+                self.request_log.append(now)
+                return True
+            return False
+    
+    # Usage example
+    limiter = SlidingWindowLog(window_size=60, max_requests=5)  # 5 requests per minute
+    
+    for _ in range(10):
+        print(limiter.allow_request())  # Will print True for the first 5 requests, then False
+        time.sleep(0.1)  # Wait a bit between requests
+
+    time.sleep(60)  # Wait for the window to slide
+    print(limiter.allow_request())  # True
+
+    5. Sliding Window Counter:
+        
+        This algorithm combines the Fixed Window Counter and Sliding Window Log approaches for a more accurate and efficient solution.
+
+        Instead of keeping track of every single request’s timestamp as the sliding log does, it focus on the number of requests from the last window.
+        
+        So, if you are in 75% of the current window, 25% of the weight would come from the previous window, and the rest from the current one:
+
+        Now, when a new request comes, you add one to that weight (weight + 1). If this new total crosses our set limit, we have to reject the request.
+
+    How it works:
+        Keep track of request count for the current and previous window.
+        
+        Calculate the weighted sum of requests based on the overlap with the sliding window.
+        
+        If the weighted sum is less than the limit, allow the request.
+
+    Pros:
+        More accurate than Fixed Window Counter.
+        
+        More memory-efficient than Sliding Window Log.
+        
+        Smooths out edges between windows.
+    
+    Cons:
+        Slightly more complex to implement.
+        
+        
+        When implementing rate limiting, consider factors such as the scale of your system, the nature of your traffic patterns, and the granularity of control you need.
+        
+        Lastly, always communicate your rate limits clearly to your API users, preferably through response headers, so they can implement appropriate retry and backoff strategies in their clients.
+
+---------------------------------------------------------------------------------------------------------------------------
+
+ACID Transactions in Databases:
+
+    Imagine you’re running an e-commerce application.
+    
+    A customer places an order, and your system needs to deduct the item from inventory, charge the customer’s credit card, and record the sale in your accounting system—all at once.
+    
+    What happens if the payment fails but your inventory count has already been reduced? Or if your application crashes halfway through the process?
+    
+    This is where ACID transactions come into play. They ensure that all the steps in such critical operations happen reliably and consistently.
+    
+    ACID is an acronym that refers to the set of 4 key properties that define a transaction: Atomicity, Consistency, Isolation, and Durability.
+
+    What is a Database Transaction?
+        A transaction in the context of databases is a sequence of one or more operations (such as inserting, updating, or deleting records) that the database treats as one single action. It either fully succeeds or fully fails, with no in-between states.
+        
+        Example: Bank Transfer
+        
+            When you send money to a friend, two things happen:
+            
+            Money is deducted from your account.
+            
+            Money is added to their account.
+            
+            These two steps form one transaction. If either step fails, both are canceled.
+            
+            Without transactions, databases could end up in inconsistent states.
+        
+        For example:
+        
+            Partial updates: Your money is deducted, but your friend never receives it.
+            
+            Conflicts: Two people booking the last movie ticket at the same time.
+            
+            Transactions solve these problems by enforcing rules like ACID properties (Atomicity, Consistency, Isolation, Durability).
+
+    1. Atomicity:
+
+        Atomicity ensures that a transaction—comprising multiple operations—executes as a single and indivisible unit of work: it either fully succeeds (commits) or fully fails (rolls back).
+        
+        If any part of the transaction fails, the entire transaction is rolled back, and the database is restored to a state exactly as it was before the transaction began.
+        
+        Example: In a money transfer transaction, if the credit step fails, the debit step cannot be allowed to stand on its own. This prevents inconsistent states like “money disappearing” from one account without showing up in another.
+        
+            Atomicity abstracts away the complexity of manually undoing changes if something goes wrong.
+        
+        How Databases Implement Atomicity:
+        
+            Databases use two key mechanisms to guarantee atomicity.
+        
+            1. Transaction Logs (Write-Ahead Logs):
+                Every operation is recorded in a write-ahead log before it’s applied to the actual database table.
+                
+                If a failure occurs, the database uses this log to undo incomplete changes.
+    
+                Once the WAL entry is safely on disk, the database proceeds with modifying the in-memory pages that contain rows for Account A and Account B.
+
+        When the operations succeed:
+
+            The database marks Transaction ID 12345 as committed in the transaction log.
+            
+            The newly updated balances for A and B will eventually get flushed from memory to their respective data files on disk.
+            
+            If the database crashes after the log entry is written but before the data files are fully updated, the WAL provides a way to recover:
+            
+            On restart, the database checks the WAL.
+            
+            It sees Transaction 12345 was committed.
+            
+            It reapplies the UPDATE operations to ensure the final balances are correct in the data files.
+            
+            If the transaction had not committed (or was marked as “in progress”) at the time of the crash, the database would roll back those changes using information in the log, leaving the table as if the transaction never happened.
+
+        2. Commit/Rollback Protocols:
+
+            Databases provide commands like BEGIN TRANSACTION, COMMIT, and ROLLBACK
+            
+            Any changes made between BEGIN TRANSACTION and COMMIT are considered “in-progress” and won’t be permanently applied unless the transaction commits successfully.
+            
+            If any step fails, or if you explicitly issue a ROLLBACK, all changes since the start of the transaction are undone.
+
+    2. Consistency:
+
+        Consistency in the context of ACID transactions ensures that any transaction will bring the database from one valid state to another valid state—never leaving it in a broken or “invalid” state.
+        
+        It means that all the data integrity constraints, such as primary key constraints (no duplicate IDs), foreign key constraints (related records must exist in parent tables), and check constraints (age can’t be negative), are satisfied before and after the transaction.
+        
+        If a transaction tries to violate these rules, it will not be committed, and the database will revert to its previous state.
+        
+        Example:
+            You have two tables in an e-commerce database:
+            
+            products (with columns: product_id, stock_quantity, etc.)
+            
+            orders (with columns: order_id, product_id, quantity, etc.)
+            
+            Constraint: You can’t place an order for a product if quantity is greater than the stock_quantity in the products table.
+
+        If the product’s stock_quantity was 8 (less than what we’re trying to order), the database sees that the new value would be -2 which breaks the consistency rule (it should not go negative).
+
+        The transaction fails or triggers a rollback, preventing the database from ending in an invalid state.
+        
+        How to Implement Consistency:
+
+            Database Schema Constraints
+            
+            NOT NULL, UNIQUE, PRIMARY KEY, FOREIGN KEY, CHECK constraints, and other schema definitions ensure no invalid entries are allowed.
+            
+            Triggers and Stored Procedures
+            
+            Triggers can automatically check additional rules whenever rows are inserted, updated, or deleted.
+                
+            Stored procedures can contain logic to validate data before committing.
+            
+            Application-Level Safeguards
+            
+            While the database enforces constraints at a lower level, applications often add extra checks—like ensuring business rules are followed or data is validated before it even reaches the database layer.
+
+    3. Isolation:
+
+        Isolation ensures that concurrently running transactions do not interfere with each other’s intermediate states.
+        
+        Essentially, while a transaction is in progress, its updates (or intermediate data) remain invisible to other ongoing transactions—giving the illusion that each transaction is running sequentially, one at a time.
+        
+        Without isolation, two or more transactions could read and write partial or uncommitted data from each other, causing incorrect or inconsistent results.
+        
+        With isolation, developers can reason more reliably about how data changes will appear to other transactions.
+
+        Concurrency Anomalies:
+
+            To understand how isolation works, it helps to see what can go wrong without proper isolation. Common concurrency anomalies include:
+            
+            Dirty Read
+            
+            Transaction A reads data that Transaction B has modified but not yet committed.
+            
+            If Transaction B then rolls back, Transaction A ends up holding an invalid or “dirty” value that never truly existed in the committed state.
+            
+            Non-Repeatable Read
+            
+            Transaction A reads the same row(s) multiple times during its execution but sees different data because another transaction updated or deleted those rows in between A’s reads.
+            
+            Phantom Read
+            
+            Transaction A performs a query that returns a set of rows. Another transaction inserts, updates, or deletes rows that match A’s query conditions.
+            
+            If A re-runs the same query, it sees a different set of rows (“phantoms”).
+            
+            Isolation Levels
+
+            Databases typically allow you to choose an isolation level, which balances data correctness with performance.
+            
+            Higher isolation levels provide stronger data consistency but can reduce system performance by increasing the wait times for transactions.
+            
+            Let's explore the four common isolation levels:
+            
+        Read Uncommitted
+            
+            Allows dirty reads; transactions can see uncommitted changes.
+            
+            Rarely used, as it can lead to severe anomalies.
+        
+        Read Committed
+
+            A transaction sees only data that has been committed at the moment of reading.
+
+            Prevents dirty reads, but non-repeatable reads and phantom reads can still occur.
+
+        Repeatable Read
+
+            Ensures if you read the same rows multiple times within a transaction, you’ll get the same values (unless you explicitly modify them).
+            
+            Prevents dirty reads and non-repeatable reads, but phantom reads may still happen (depending on the database engine).
+
+        Serializable
+
+            The highest level of isolation, acting as if all transactions happen sequentially one at a time.
+            
+            Prevents dirty reads, non-repeatable reads, and phantom reads.
+            
+            Most expensive in terms of performance and concurrency because it can require more locking or more conflict checks.
+
+        How Databases Enforce Isolation
+
+            1. Locking:
+
+                Pessimistic Concurrency Control
+                
+                Rows or tables are locked so that no other transaction can read or write them until the lock is released.
+                
+                Can lead to blocking or deadlocks if multiple transactions compete for the same locks.
+
+            2. MVCC (Multi-Version Concurrency Control):
+
+                Optimistic Concurrency Control
+                
+                Instead of blocking reads, the database keeps multiple versions of a row.
+                
+                Readers see a consistent snapshot of data (like a point-in-time view), while writers create a new version of the row when updating.
+                
+                This approach reduces lock contention but requires carefully managing row versions and cleanup (vacuuming in PostgreSQL, for example).
+            
+            3. Snapshot Isolation:
+
+                A form of MVCC where each transaction sees data as it was at the start (or a consistent point) of the transaction.
+                
+                Prevents non-repeatable reads and dirty reads. Phantom reads may still occur unless the isolation level is fully serializable.
+
+    4. Durability:
+
+        Durability ensures that once a transaction has been committed, the changes it made will survive, even in the face of power failures, crashes, or other catastrophic events.
+        
+        In other words, once a transaction says “done,” the data is permanently recorded and cannot simply disappear.
+
+    How Databases Ensure Durability
+    
+    1.Transaction Logs (Write-Ahead Logging):
+
+        Most relational databases rely on a Write-Ahead Log (WAL) to preserve changes before they’re written to the main data files:
+        
+        Write Changes to WAL: The intended operations (updates, inserts, deletes) are recorded in the WAL on durable storage (disk).
+        
+        Commit the Transaction: Once the WAL entry is safely persisted, the database can mark the transaction as committed.
+        
+        Apply Changes to Main Data Files: The updated data eventually gets written to the main files—possibly first in memory, then flushed to disk.
+        
+        If the database crashes, it uses the WAL during recovery:
+        
+        Redo: Any committed transactions not yet reflected in the main files are reapplied.
+        
+        Undo: Any incomplete (uncommitted) transactions are rolled back to keep the database consistent.
+
+    2. Replication / Redundancy:
+
+        In addition to WAL, many systems use replication to ensure data remains durable even if hardware or an entire data center fails.
+        
+        Synchronous Replication: Writes are immediately copied to multiple nodes or data centers. A transaction is marked committed only if the primary and at least one replica confirm it’s safely stored.
+        
+        Asynchronous Replication: Changes eventually sync to other nodes, but there is a (small) window where data loss can occur if the primary fails before the replica is updated.
+
+    3. Backups:
+
+        Regular backups provide a safety net beyond logs and replication. In case of severe corruption, human error, or catastrophic failure:
+        
+        Full Backups: Capture the entire database at a point in time.
+        
+        Incremental/Differential Backups: Store changes since the last backup for faster, more frequent backups.
+        
+        Off-Site Storage: Ensures backups remain safe from localized disasters, allowing you to restore data even if hardware is damaged.
+
+Database Indexes:
+    
+    Consider a large Book of 1000 pages.
+
+    Suppose you’re trying to find the page which contains information related to a certain word.
+    
+    Without an index page, you would have to go through every page, which could take hours or even days.
+    
+    But with an index page, you know where to look!
+    
+    One you find the right index, you can efficiently jump to that page.
+    
+    The index, since it's sorted alphabetically and gives page numbers for specific information, saves us from spending too much time flipping through every page.
+    
+    Database indexes work in a similar manner. They guide the database to the exact location of the data, enabling faster and more efficient data retrieval.
+
+    1. What are Database Indexes?
+
+        A database index is a super-efficient lookup table that allows a database to find data much faster.
+        
+        It holds the indexed column values along with pointers to the corresponding rows in the table.
+        
+        Without an index, the database might have to scan every single row in a massive table to find what you want – a painfully slow process.
+        
+        But, with an index, the database can zero in on the exact location of the desired data using the index’s pointers.
+        
+        How to create Indexes?
+        
+            Here's an example of creating an index in a MySQL database.
+        
+            Let's say we have a table named employees with the following structure:
+                
+                CREATE TABLE EMPLOYEE(id int,last_name varchar(20),first_name varchar(20)));
+
+                Now, let's create an index on the last_name column to improve the performance of queries that frequently search or sort based on the last name.
+
+                CREATE INDEX idex_last_name ON EMPLOYEE(last_name);
+
+                In this example, we use the CREATE INDEX statement to create an index named idx_last_name on the employees table. The index is created on the last_name column.
+
+                After creating the index, queries that involve conditions or sorting on the last_name column will be optimized. For example:
+                
+                SELECT * FROM EMPLOYEE where last_name = 'PAGADALA';
+
+            This query will use the idx_last_name index to quickly locate the rows where the last_name is 'Smith', avoiding a full table scan.
+
+            You can also create indexes on multiple columns (composite indexes) if your queries frequently involve conditions on multiple columns together. For example:
+                
+                CREATE INDEX idex_last_name ON EMPLOYEE(last_name,first_name);
+            
+                This creates a composite index on the first_name and last_name columns, which can be useful for queries that search or sort based on both columns.
+
+        
+    2. How do Database Indexes Work?
+            Here's a step-by-step explanation of how database indexes work:
+            
+            Index Creation: The database administrator creates an index on a specific column or set of columns.
+            
+            Index Building: The database management system builds the index by scanning the table and storing the values of the indexed column(s) along with a pointer to the corresponding data.
+            
+            Query Execution: When a query is executed, the database engine checks if an index exists for the requested column(s).
+            
+            Index Search: If an index exists, the database searches the index for the requested data, using the pointers to quickly locate the data.
+            
+            Data Retrieval: The database retrieves the requested data, using the pointers from the index.
+
+    3. Benefits of Database Indexes
+            Database indexes offer several benefits, including:
+            
+            Faster Query Performance: Indexes can significantly improve query performance especially for large datasets by reducing the amount of data that needs to be scanned.
+            
+            Reduced CPU Usage: By reducing the number of rows that need to be scanned, indexes can decrease CPU usage and optimize resource utilization.
+            
+            Rapid Data Retrieval: Indexes enable quick data retrieval for queries that involve equality or range conditions on the indexed columns.
+            
+            Efficient Sorting: Indexes can also be used to efficiently sort data based on the indexed columns, eliminating the need for expensive sorting operations.
+            
+            Better Data Organization: Indexes can help maintain data organization and structure, making it easier to manage and maintain the database.
